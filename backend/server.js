@@ -1,0 +1,262 @@
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcrypt');
+const sqlite3 = require('sqlite3').verbose();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Inicializa banco de dados SQLite
+const db = new sqlite3.Database('revitalize.db');
+
+// Cria tabelas se não existirem
+db.serialize(() => {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      idade INTEGER NOT NULL,
+      sexo TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      senha_hash TEXT NOT NULL
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS planos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      altura REAL NOT NULL,
+      peso REAL NOT NULL,
+      objetivo TEXT NOT NULL,
+      trainings TEXT NOT NULL,
+      history TEXT NOT NULL DEFAULT '[]',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES usuarios(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS imc_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      peso REAL NOT NULL,
+      altura REAL NOT NULL,
+      idade INTEGER,
+      sexo TEXT,
+      valor REAL NOT NULL,
+      classificacao TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES usuarios(id)
+    )`
+  );
+});
+
+let mailTransporter = null;
+try {
+  const nodemailer = require('nodemailer');
+  if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    mailTransporter = nodemailer.createTransport({
+      service: process.env.MAIL_SERVICE || 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+  }
+} catch (e) {
+  console.warn(
+    'nodemailer não está instalado. Os códigos de verificação serão exibidos no console.'
+  );
+}
+
+// Endpoint para envio de código de verificação por e-mail
+app.post('/api/send-code', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+  }
+  // Se não houver transportador configurado, apenas registra no console
+  if (!mailTransporter) {
+    console.log(`Código de verificação para ${email}: ${code}`);
+    return res.json({ mensagem: 'Código registrado no log (modo desenvolvimento)' });
+  }
+  const mailOptions = {
+    from: process.env.MAIL_USER,
+    to: email,
+    subject: 'Seu código de verificação Revitalize',
+    text: `Olá! Seu código de verificação é: ${code}`,
+  };
+  mailTransporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error('Erro ao enviar e-mail:', err);
+      return res.status(500).json({ erro: 'Falha ao enviar e-mail' });
+    }
+    return res.json({ mensagem: 'E-mail enviado com sucesso' });
+  });
+});
+
+// Rota de cadastro
+app.post('/api/register', (req, res) => {
+  const { nome, idade, sexo, email, senha } = req.body;
+  if (!nome || !idade || !sexo || !email || !senha) {
+    return res.status(400).json({ erro: 'Dados incompletos' });
+  }
+  // Verifica se já existe e-mail cadastrado
+  db.get('SELECT id FROM usuarios WHERE email = ?', [email], (err, row) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    if (row) return res.status(409).json({ erro: 'E-mail já cadastrado' });
+    // Gera hash da senha e insere usuário
+    bcrypt.hash(senha, 10, (errHash, hash) => {
+      if (errHash) return res.status(500).json({ erro: errHash.message });
+      db.run(
+        'INSERT INTO usuarios (nome, idade, sexo, email, senha_hash) VALUES (?, ?, ?, ?, ?)',
+        [nome, idade, sexo, email, hash],
+        function (errIns) {
+          if (errIns) return res.status(500).json({ erro: errIns.message });
+          return res.status(201).json({ id: this.lastID, nome, idade, sexo, email });
+        }
+      );
+    });
+  });
+});
+
+// Rota de login
+app.post('/api/login', (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) return res.status(400).json({ erro: 'Dados incompletos' });
+  db.get('SELECT * FROM usuarios WHERE email = ?', [email], (err, user) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    if (!user) return res.status(401).json({ erro: 'E-mail ou senha incorretos' });
+    bcrypt.compare(senha, user.senha_hash, (errComp, match) => {
+      if (errComp) return res.status(500).json({ erro: errComp.message });
+      if (!match) return res.status(401).json({ erro: 'E-mail ou senha incorretos' });
+      // remove hash da senha antes de retornar
+      const { senha_hash, ...userData } = user;
+      return res.json(userData);
+    });
+  });
+});
+
+// Lista planos de um usuário
+app.get('/api/plans', (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).json({ erro: 'user_id é obrigatório' });
+  db.all('SELECT * FROM planos WHERE user_id = ?', [user_id], (err, rows) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    // converte JSON armazenado
+    const plans = rows.map((p) => ({
+      ...p,
+      trainings: JSON.parse(p.trainings),
+      history: JSON.parse(p.history),
+    }));
+    return res.json(plans);
+  });
+});
+
+// Cria um plano novo
+app.post('/api/plans', (req, res) => {
+  const { user_id, altura, peso, objetivo, trainings } = req.body;
+  if (!user_id || !altura || !peso || !objetivo || !trainings) {
+    return res.status(400).json({ erro: 'Dados incompletos' });
+  }
+  const now = new Date().toISOString();
+  db.run(
+    'INSERT INTO planos (user_id, altura, peso, objetivo, trainings, history, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      user_id,
+      altura,
+      peso,
+      objetivo,
+      JSON.stringify(trainings),
+      JSON.stringify([]),
+      now,
+      now,
+    ],
+    function (err) {
+      if (err) return res.status(500).json({ erro: err.message });
+      return res.status(201).json({ id: this.lastID });
+    }
+  );
+});
+
+// Atualiza um plano (e salva versão anterior no history)
+app.put('/api/plans/:id', (req, res) => {
+  const planId = req.params.id;
+  const { altura, peso, objetivo, trainings } = req.body;
+  db.get('SELECT * FROM planos WHERE id = ?', [planId], (err, plan) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    if (!plan) return res.status(404).json({ erro: 'Plano não encontrado' });
+    const history = JSON.parse(plan.history);
+    // adiciona versão atual ao histórico
+    history.push({
+      altura: plan.altura,
+      peso: plan.peso,
+      objetivo: plan.objetivo,
+      trainings: JSON.parse(plan.trainings),
+      updated_at: plan.updated_at,
+    });
+    const now = new Date().toISOString();
+    db.run(
+      'UPDATE planos SET altura = ?, peso = ?, objetivo = ?, trainings = ?, history = ?, updated_at = ? WHERE id = ?',
+      [
+        altura || plan.altura,
+        peso || plan.peso,
+        objetivo || plan.objetivo,
+        JSON.stringify(trainings || JSON.parse(plan.trainings)),
+        JSON.stringify(history),
+        now,
+        planId,
+      ],
+      function (errUp) {
+        if (errUp) return res.status(500).json({ erro: errUp.message });
+        return res.json({ mensagem: 'Plano atualizado' });
+      }
+    );
+  });
+});
+
+// Exclui um plano
+app.delete('/api/plans/:id', (req, res) => {
+  const planId = req.params.id;
+  db.run('DELETE FROM planos WHERE id = ?', [planId], function (err) {
+    if (err) return res.status(500).json({ erro: err.message });
+    if (this.changes === 0) return res.status(404).json({ erro: 'Plano não encontrado' });
+    return res.json({ mensagem: 'Plano deletado' });
+  });
+});
+
+// Lista histórico de IMC
+app.get('/api/imc-history', (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).json({ erro: 'user_id é obrigatório' });
+  db.all('SELECT * FROM imc_history WHERE user_id = ? ORDER BY date ASC', [user_id], (err, rows) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    return res.json(rows);
+  });
+});
+
+// Adiciona um registro de IMC
+app.post('/api/imc-history', (req, res) => {
+  const { user_id, peso, altura, idade, sexo, valor, classificacao } = req.body;
+  if (!user_id || !peso || !altura || !valor || !classificacao) {
+    return res.status(400).json({ erro: 'Dados incompletos' });
+  }
+  const date = new Date().toISOString();
+  db.run(
+    'INSERT INTO imc_history (user_id, date, peso, altura, idade, sexo, valor, classificacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [user_id, date, peso, altura, idade || null, sexo || null, valor, classificacao],
+    function (err) {
+      if (err) return res.status(500).json({ erro: err.message });
+      return res.status(201).json({ id: this.lastID });
+    }
+  );
+});
+
+// Inicia servidor
+app.listen(PORT, () => {
+  console.log(`Servidor Revitalize rodando na porta ${PORT}`);
+});

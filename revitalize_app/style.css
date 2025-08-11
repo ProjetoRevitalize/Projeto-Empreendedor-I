@@ -1,0 +1,572 @@
+/*
+  Arquivo de estilos da aplicação Revitalize.
+  Define as cores principais da marca e estabelece a aparência das
+  páginas de login e cadastro. A paleta de cores foi extraída do
+  documento fornecido e aplicada de forma consistente nos elementos.
+*/
+
+/* Paleta de cores principal */
+:root {
+  --primary-color: #195656;    /* Teal escuro */
+  --secondary-color: #285537;  /* Verde escuro */
+  --accent-color: #54EAF0;     /* Azul claro (não utilizado neste protótipo, mas disponível) */
+  --light-color: #FEFEFE;      /* Branco */
+  --gray-color: #B1AFAF;       /* Cinza claro */
+  --dark-color: #373435;       /* Cinza escuro quase preto */
+  --error-color: #C0392B;      /* Vermelho para mensagens de erro */
+}
+
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--dark-color);
+  min-height: 100vh;
+}
+
+/* Fundos específicos para cada página */
+/*
+  Fundos de cada página
+  - As telas de login e cadastro utilizam um fundo claro com textura de mármore,
+    conforme a primeira tela apresentada nos protótipos (FUNDO INICIAL PRIMEIRA TELA.png).
+  - As telas internas (home, criar plano, ajustar plano, monitoramento e IMC)
+    utilizam um fundo teal com o logotipo em marca d'água (FUNDO APP 01.png).
+*/
+body.login,
+body.register {
+  background: url('assets/background_login.png') no-repeat center center / cover;
+}
+
+body.home,
+body.plan,
+body.adjust,
+body.monitoring,
+body.imc {
+  background: url('assets/background_app.png') no-repeat center center / cover;
+}
+
+/* Camada de sobreposição que centraliza o conteúdo */
+.overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  /* Adiciona um leve sombreado para melhorar a legibilidade do texto sobre o fundo */
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Área da marca */
+.logo-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.logo-text {
+  width: 200px;
+  height: auto;
+}
+
+/* Estilo do formulário */
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-container h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--dark-color);
+}
+
+.input-group input[type='text'],
+.input-group input[type='number'],
+.input-group input[type='email'],
+.input-group input[type='password'] {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(25, 86, 86, 0.2);
+}
+
+/* Estilo do grupo de rádio (sexo) */
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.radio-group input {
+  margin-right: 0.3rem;
+}
+
+/* Botões */
+.btn {
+  width: 100%;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.btn.primary {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+}
+
+.btn.primary:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Links */
+.link {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.link a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.link a:hover {
+  text-decoration: underline;
+}
+
+/* Mensagens de erro */
+.error-message {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+/* Modal de verificação */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--light-color);
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 350px;
+  width: 85%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* ====================
+   Estilos da tela Home
+   ====================
+   A página inicial exibe uma saudação, um botão de logout e uma grade
+   de funcionalidades. Cada card de funcionalidade possui um ícone e
+   um rótulo. A grade se adapta ao tamanho da tela e mantém espaçamento
+   consistente.  */
+
+body.home .overlay {
+  justify-content: flex-start;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 1rem auto;
+  padding: 0.5rem 0;
+  color: var(--light-color);
+  font-weight: bold;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.home-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.home-logo img {
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.feature-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.feature-label {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* ====================
+   Estilos da criação de plano (plan.html)
+   ====================
+   O formulário de criação de plano utiliza a mesma caixa de formulário
+   do cadastro, mas com campos específicos para altura, peso e
+   objetivo. A página inclui um cabeçalho com botão de voltar. */
+
+body.plan .form-container {
+  max-width: 450px;
+}
+
+body.plan select {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+/* ====================
+   Estilos da tela de ajustes (adjust.html)
+   ====================
+   A lista de planos utiliza cartões empilhados com botões de editar
+   e deletar. Ao selecionar um plano, é exibido um painel com seus
+   detalhes e campos para ajuste. */
+
+.plan-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.plan-item {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plan-item h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.plan-actions button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.plan-actions .edit-btn {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+}
+
+.plan-actions .delete-btn {
+  background-color: var(--error-color);
+  color: var(--light-color);
+}
+
+.plan-details {
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.plan-details h4 {
+  margin-bottom: 0.8rem;
+  color: var(--primary-color);
+}
+
+.exercise-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.exercise-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+.exercise-list li:last-child {
+  border-bottom: none;
+}
+
+/* Itens de treino dentro dos ajustes */
+.training-item {
+  margin-bottom: 1rem;
+}
+
+.training-name {
+  margin-bottom: 0.3rem;
+  padding: 0.3rem;
+  width: 100%;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.adjust-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.adjust-buttons .btn {
+  width: auto;
+  padding: 0.6rem 1rem;
+}
+
+/* ====================
+   Estilos da tela de monitoramento (monitoring.html)
+   ====================
+   A tela de monitoramento apresenta abas para cada plano de treino e
+   cartões com os módulos de relatório e nutrição/suplementação, além
+   de um botão para exportar relatórios. */
+
+.tab-bar {
+  display: flex;
+  justify-content: center;
+  margin: 1rem auto;
+  gap: 0.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.85);
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.tab.active {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.monitor-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.monitor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.monitor-card img {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.5rem;
+}
+
+.monitor-card .card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.export-btn {
+  margin: 1.5rem auto;
+  display: block;
+  padding: 0.7rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--light-color);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+/* ====================
+   Estilos da calculadora de IMC (imc.html)
+   ====================
+   Esta página usa um contêiner escuro para simular a calculadora com
+   teclado numérico. Os campos de entrada são maiores e centralizados.
+*/
+
+.imc-container {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--light-color);
+  padding: 1.5rem;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.imc-container h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.imc-input {
+  margin: 0.6rem 0;
+  font-size: 1.5rem;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  text-align: center;
+  color: var(--dark-color);
+}
+
+.imc-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.imc-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.imc-buttons .btn {
+  width: auto;
+  padding: 0.5rem 1rem;
+}
+
+.imc-result {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+}

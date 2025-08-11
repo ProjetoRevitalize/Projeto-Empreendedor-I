@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revitalize – Cadastro</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="register">
+  <div class="overlay">
+    <!-- Logotipo -->
+    <div class="logo-container">
+      <img src="assets/logo_icon.png" alt="Revitalize" class="logo-icon" />
+      <img src="assets/logo_text.png" alt="Revitalize Health &amp; Wellness" class="logo-text" />
+    </div>
+    <!-- Formulário de cadastro -->
+    <form id="registerForm" class="form-container">
+      <h2>Criar conta</h2>
+      <div class="input-group">
+        <label for="name">Nome completo</label>
+        <input type="text" id="name" name="name" placeholder="Digite seu nome"
+          oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ ]/g, '')" required />
+      </div>
+
+
+      <div class="input-group">
+        <label for="age">Idade</label>
+        <input type="text" id="age" name="age" placeholder="Digite sua idade" maxlength="2" inputmode="numeric"
+          pattern="\d*" autocomplete="off" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />
+      </div>
+
+
+      <div class="input-group">
+        <label>Sexo</label>
+        <div class="radio-group">
+          <label><input type="radio" name="gender" value="Masculino" /> Masculino</label>
+          <label><input type="radio" name="gender" value="Feminino" /> Feminino</label>
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="registerEmail">E‑mail</label>
+        <input type="email" id="registerEmail" name="email" placeholder="seuemail@exemplo.com" required />
+      </div>
+      <div class="input-group">
+        <label for="registerPassword">Senha</label>
+        <input type="password" id="registerPassword" name="password" placeholder="Crie uma senha" required />
+      </div>
+      <div class="input-group">
+        <label for="confirmPassword">Confirmar senha</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repita a senha" required />
+      </div>
+      <p id="registerError" class="error-message"></p>
+      <button type="submit" class="btn primary">Cadastrar</button>
+      <p class="link">Já tem conta? <a href="index.html">Entrar</a></p>
+    </form>
+    <!-- Modal de verificação de cadastro -->
+    <div id="twoFactorModal" class="modal">
+      <div class="modal-content">
+        <h3 id="twoFactorTitle">Verificação de cadastro</h3>
+        <p id="twoFactorSubtitle">Enviamos um código para seu e‑mail. Insira abaixo para confirmar o cadastro:</p>
+        <input type="text" id="twoFactorCode" placeholder="Código de verificação" />
+        <p id="twoFactorError" class="error-message"></p>
+        <button id="verifyCodeButton" class="btn primary">Verificar</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
