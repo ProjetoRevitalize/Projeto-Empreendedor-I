@@ -1,19 +1,13 @@
-/*
-  Arquivo de estilos da aplicação Revitalize.
-  Define as cores principais da marca e estabelece a aparência das
-  páginas de login e cadastro. A paleta de cores foi extraída do
-  documento fornecido e aplicada de forma consistente nos elementos.
-*/
 
 /* Paleta de cores principal */
 :root {
-  --primary-color: #195656;    /* Teal escuro */
-  --secondary-color: #285537;  /* Verde escuro */
-  --accent-color: #54EAF0;     /* Azul claro (não utilizado neste protótipo, mas disponível) */
-  --light-color: #FEFEFE;      /* Branco */
-  --gray-color: #B1AFAF;       /* Cinza claro */
-  --dark-color: #373435;       /* Cinza escuro quase preto */
-  --error-color: #C0392B;      /* Vermelho para mensagens de erro */
+  --primary-color: #195656;    
+  --secondary-color: #285537;  
+  --accent-color: #54EAF0;     
+  --light-color: #FEFEFE;     
+  --gray-color: #B1AFAF;       
+  --dark-color: #373435;       
+  --error-color: #C0392B;      
 }
 
 /* Reset básico */
@@ -30,13 +24,6 @@ body {
 }
 
 /* Fundos específicos para cada página */
-/*
-  Fundos de cada página
-  - As telas de login e cadastro utilizam um fundo claro com textura de mármore,
-    conforme a primeira tela apresentada nos protótipos (FUNDO INICIAL PRIMEIRA TELA.png).
-  - As telas internas (home, criar plano, ajustar plano, monitoramento e IMC)
-    utilizam um fundo teal com o logotipo em marca d'água (FUNDO APP 01.png).
-*/
 body.login,
 body.register {
   background: url('assets/background_login.png') no-repeat center center / cover;
@@ -58,7 +45,6 @@ body.imc {
   justify-content: flex-start;
   padding: 2rem 1rem;
   min-height: 100vh;
-  /* Adiciona um leve sombreado para melhorar a legibilidade do texto sobre o fundo */
   background-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -220,13 +206,7 @@ body.imc {
   margin-bottom: 1rem;
 }
 
-/* ====================
-   Estilos da tela Home
-   ====================
-   A página inicial exibe uma saudação, um botão de logout e uma grade
-   de funcionalidades. Cada card de funcionalidade possui um ícone e
-   um rótulo. A grade se adapta ao tamanho da tela e mantém espaçamento
-   consistente.  */
+/* Estilos da tela Home*/
 
 body.home .overlay {
   justify-content: flex-start;
@@ -300,12 +280,7 @@ body.home .overlay {
   color: var(--primary-color);
 }
 
-/* ====================
-   Estilos da criação de plano (plan.html)
-   ====================
-   O formulário de criação de plano utiliza a mesma caixa de formulário
-   do cadastro, mas com campos específicos para altura, peso e
-   objetivo. A página inclui um cabeçalho com botão de voltar. */
+/* Estilos da criação de plano  */
 
 body.plan .form-container {
   max-width: 450px;
@@ -318,12 +293,7 @@ body.plan select {
   font-size: 0.95rem;
 }
 
-/* ====================
-   Estilos da tela de ajustes (adjust.html)
-   ====================
-   A lista de planos utiliza cartões empilhados com botões de editar
-   e deletar. Ao selecionar um plano, é exibido um painel com seus
-   detalhes e campos para ajuste. */
+/* Estilos da tela de ajustes */
 
 .plan-list {
   width: 100%;
@@ -430,12 +400,7 @@ body.plan select {
   padding: 0.6rem 1rem;
 }
 
-/* ====================
-   Estilos da tela de monitoramento (monitoring.html)
-   ====================
-   A tela de monitoramento apresenta abas para cada plano de treino e
-   cartões com os módulos de relatório e nutrição/suplementação, além
-   de um botão para exportar relatórios. */
+/* Estilos da tela de monitoramento */
 
 .tab-bar {
   display: flex;
@@ -515,12 +480,7 @@ body.plan select {
   background-color: var(--secondary-color);
 }
 
-/* ====================
-   Estilos da calculadora de IMC (imc.html)
-   ====================
-   Esta página usa um contêiner escuro para simular a calculadora com
-   teclado numérico. Os campos de entrada são maiores e centralizados.
-*/
+/* Estilos da calculadora de IMC */
 
 .imc-container {
   background-color: rgba(0, 0, 0, 0.7);
