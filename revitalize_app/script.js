@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errors.push("A senha deve conter pelo menos um caractere especial.");
       }
       if (errors.length > 0) {
-        errorEl.textContent = errors.join(" ");
+        errorEl.textContent = errors.join("\n");
         return;
       }
       errorEl.textContent = "";
