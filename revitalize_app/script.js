@@ -78,13 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const nameRegex = /^[A-Za-zÀ-ÿ ]+$/;
       if (!nameRegex.test(name)) {
-        errorEl.textContent = 'No campo "Nome" utilize apenas letras e espaços.';
+        errorEl.textContent = 'No campo “Nome” utilize apenas caracteres alfabéticos e espaços.';
         return;
       }
 
       const ageNumber = parseInt(ageInput, 10);
       if (!ageInput || isNaN(ageNumber) || ageNumber <= 0 || /[^0-9]/.test(ageInput)) {
-        errorEl.textContent = 'No campo "Idade", utilize apenas caracteres numéricos inteiros.';
+        errorEl.textContent = 'No campo “Idade” utilize apenas caracteres numéricos inteiros.';
         return;
       }
 
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailPattern.test(email)) {
-        errorEl.textContent = 'No campo "E-mail" há caracteres inválidos.';
+        errorEl.textContent = 'No campo “E-mail” há caracteres inválidos.';
         return;
       }
 
@@ -106,7 +106,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      //verificar se vai ser mantido os avisos ou apenas deixar "A senha não atende aos requisitos."
+      //e colocar os critérios no input
       const errors = [];
+      if (password.length < 8
+        || password.length > 16
+        || !/[a-z]/.test(password)
+        || !/[A-Z]/.test(password)
+        || !/[0-9]/.test(password)
+        || !/[^A-Za-z0-9]/.test(password)
+      ) {
+        errors.push("A senha não atende aos requisitos.");
+      }
       if (password.length < 8 || password.length > 16) {
         errors.push("A senha deve ter entre 8 e 16 caracteres.");
       }
