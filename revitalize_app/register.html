@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,15 +20,13 @@
       <h2>Criar conta</h2>
       <div class="input-group">
         <label for="name">Nome completo</label>
-        <input type="text" id="name" name="name" placeholder="Digite seu nome"
-          oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ ]/g, '')" required />
+        <input type="text" id="name" name="name" placeholder="Seu nome" required />
       </div>
 
 
       <div class="input-group">
         <label for="age">Idade</label>
-        <input type="text" id="age" name="age" placeholder="Digite sua idade" maxlength="2" inputmode="numeric"
-          pattern="\d*" autocomplete="off" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required />
+        <input type="text" id="age" name="age" placeholder="Digite sua idade" maxlength="2" required />
       </div>
 
 
