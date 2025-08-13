@@ -191,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (enteredCode === storedCode) {
-        // Código correto: decide entre fluxo de cadastro ou login
         sessionStorage.removeItem('twoFactorCode');
         errorEl.textContent = '';
         if (verificationMode === 'register') {
@@ -207,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
             apiRegisterUser(userObj)
               .then(() => {
                 alert('Cadastro confirmado com sucesso! Faça login para continuar.');
-                // Esconde o modal e redireciona para a tela de login
                 const modal = document.getElementById('twoFactorModal');
                 if (modal) modal.style.display = 'none';
                 window.location.href = 'index.html';
@@ -233,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           // Fluxo de login
-          // Se estivermos usando API, o usuário já foi salvo em currentUser no passo de login.
           if (!USE_API) {
             const emailField = document.getElementById('loginEmail');
             const emailVal = emailField ? emailField.value.trim() : null;
