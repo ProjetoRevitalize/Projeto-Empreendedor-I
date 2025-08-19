@@ -1,3 +1,5 @@
+/*-------------------Unidade 1-------------------*/
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const USE_API = false;
@@ -180,9 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* Verificação do código de autenticação de dois fatores */
-  const verifyCodeButton = document.getElementById('verifyCodeButton');
-  if (verifyCodeButton) {
-    verifyCodeButton.addEventListener('click', () => {
+  const verifyRegisgterButton = document.getElementById('verifyRegisgterButton');
+  if (verifyRegisgterButton) {
+    verifyRegisgterButton.addEventListener('click', () => {
       const enteredCode = document.getElementById('twoFactorCode').value.trim();
       const storedCode = sessionStorage.getItem('twoFactorCode');
       const errorEl = document.getElementById('twoFactorError');
@@ -251,4 +253,160 @@ document.addEventListener('DOMContentLoaded', () => {
         errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
       }
     });
-}});
+  }
+
+/*-------------------Unidade 2-------------------*/
+
+/* Login de usuários */
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    errorEl.textContent = '';
+    // Autentica via API ou localStorage
+    function proceedToTwoFactor(userObj) {
+      // Armazena usuário para saudação após login
+      sessionStorage.setItem('currentUser', JSON.stringify(userObj));
+      // Define contexto de verificação para login e limpa qualquer cadastro pendente
+      verificationMode = 'login';
+      pendingRegistrationUser = null;
+      // Gera um código de 4 dígitos (1000-9999) para verificação
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      sessionStorage.setItem('twoFactorCode', code);
+      // Se estivermos usando API, envia o código por e-mail ao usuário
+      if (USE_API) {
+        apiSendCode(userObj.email, code).catch((err) => {
+          console.error('Falha ao enviar código por e-mail:', err.message);
+        });
+      } else {
+        // Fallback: exibe o código em um alerta para simular envio
+        alert('Código de verificação (simulação de envio por e-mail): ' + code);
+      }
+      // Atualiza título e subtítulo do modal para contexto de login
+      const titleEl = document.getElementById('twoFactorTitle');
+      const subtitleEl = document.getElementById('twoFactorSubtitle');
+      if (titleEl) titleEl.textContent = 'Verificação em 2 passos';
+      if (subtitleEl) subtitleEl.textContent = 'Código enviado para o seu e‑mail. Insira abaixo:';
+      // Exibe o modal de verificação
+      const modal = document.getElementById('twoFactorModal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+    if (USE_API) {
+      apiLoginUser(email, password)
+        .then((userObj) => {
+          proceedToTwoFactor(userObj);
+        })
+        .catch((err) => {
+          errorEl.textContent = err.message;
+          setTimeout(() => {
+            errorEl.textContent = '';
+          }, 3000);
+        });
+    } else {
+      const users = getUsers();
+      const user = users.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      );
+      if (!user) {
+        errorEl.textContent = 'E-mail ou senha incorretos.';
+        setTimeout(() => {
+          errorEl.textContent = '';
+        }, 3000);
+        return;
+      }
+      proceedToTwoFactor(user);
+    }
+  });
+}
+
+/* Verificação do código de autenticação de dois fatores */
+const verifyLoginButton = document.getElementById('verifyLoginButton');
+if (verifyLoginButton) {
+  verifyLoginButton.addEventListener('click', () => {
+    const enteredCode = document.getElementById('twoFactorCode').value.trim();
+    const storedCode = sessionStorage.getItem('twoFactorCode');
+    const errorEl = document.getElementById('twoFactorError');
+    if (!storedCode) {
+      errorEl.textContent = 'Erro interno. Por favor, faça login novamente.';
+      return;
+    }
+    if (enteredCode === storedCode) {
+      // Código correto: decide entre fluxo de cadastro ou login
+      sessionStorage.removeItem('twoFactorCode');
+      errorEl.textContent = '';
+      if (verificationMode === 'register') {
+        const userObj = pendingRegistrationUser;
+        pendingRegistrationUser = null;
+        verificationMode = null;
+        if (!userObj) {
+          errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
+          return;
+        }
+        if (USE_API) {
+          apiRegisterUser(userObj)
+            .then(() => {
+              alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+              // Esconde o modal e redireciona para a tela de login
+              const modal = document.getElementById('twoFactorModal');
+              if (modal) modal.style.display = 'none';
+              window.location.href = 'index.html';
+            })
+            .catch((err) => {
+              errorEl.textContent = err.message;
+            });
+        } else {
+          // Salva em localStorage
+          const users = getUsers();
+          users.push({
+            name: userObj.nome,
+            age: userObj.idade,
+            gender: userObj.sexo,
+            email: userObj.email,
+            password: userObj.senha,
+          });
+          saveUsers(users);
+          alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+          const modal = document.getElementById('twoFactorModal');
+          if (modal) modal.style.display = 'none';
+          window.location.href = 'index.html';
+        }
+      } else {
+        // Fluxo de login
+        if (!USE_API) {
+          const emailField = document.getElementById('loginEmail');
+          const emailVal = emailField ? emailField.value.trim() : null;
+          if (emailVal) {
+            const users = getUsers();
+            const u = users.find((usr) => usr.email.toLowerCase() === emailVal.toLowerCase());
+            if (u) sessionStorage.setItem('currentUser', JSON.stringify(u));
+          }
+        }
+        // Fecha o modal de 2FA e redireciona à home
+        const modal = document.getElementById('twoFactorModal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+        window.location.href = 'home.html';
+      }
+    } else {
+      errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
+    }
+  });
+}
+
+/* Link de recuperação de senha */
+const forgotLink = document.getElementById('forgotPasswordLink');
+if (forgotLink) {
+  forgotLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    alert(
+      'Recuperação de senha ainda não implementada neste protótipo. Por favor, cadastre-se novamente ou contate o suporte.'
+    );
+  });
+}
+});
