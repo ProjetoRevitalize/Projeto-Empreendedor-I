@@ -103,11 +103,12 @@ body.register {
   box-shadow: 0 0 0 2px rgba(25, 86, 86, 0.2);
 }
 
-/* Estilo do grupo de rádio (sexo) */
+/* Estilo do grupo de rádio */
 .radio-group {
   display: flex;
-  gap: 1rem;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .radio-group input {
