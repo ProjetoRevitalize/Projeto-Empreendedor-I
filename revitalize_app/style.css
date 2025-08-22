@@ -215,13 +215,7 @@ body.imc {
   margin-bottom: 1rem;
 }
 
-/* ====================
-   Estilos da tela Home
-   ====================
-   A página inicial exibe uma saudação, um botão de logout e uma grade
-   de funcionalidades. Cada card de funcionalidade possui um ícone e
-   um rótulo. A grade se adapta ao tamanho da tela e mantém espaçamento
-   consistente.  */
+/* Estilos da tela Home */
 
 body.home .overlay {
   justify-content: flex-start;
@@ -295,12 +289,29 @@ body.home .overlay {
   color: var(--primary-color);
 }
 
-/* ====================
-   Estilos da criação de plano (plan.html)
-   ====================
-   O formulário de criação de plano utiliza a mesma caixa de formulário
-   do cadastro, mas com campos específicos para altura, peso e
-   objetivo. A página inclui um cabeçalho com botão de voltar. */
+/* Estilos da criação de plano */
+
+.app-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  /* centraliza o título */
+  align-items: center;
+  padding: 1rem;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.app-header .icon-btn {
+  position: absolute;
+  left: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
 
 body.plan .form-container {
   max-width: 450px;
