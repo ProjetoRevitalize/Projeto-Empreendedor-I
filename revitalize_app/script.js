@@ -255,158 +255,326 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-/*-------------------Unidade 2-------------------*/
+  /*-------------------Unidade 2-------------------*/
 
-/* Login de usuários */
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
-    errorEl.textContent = '';
-    // Autentica via API ou localStorage
-    function proceedToTwoFactor(userObj) {
-      // Armazena usuário para saudação após login
-      sessionStorage.setItem('currentUser', JSON.stringify(userObj));
-      // Define contexto de verificação para login e limpa qualquer cadastro pendente
-      verificationMode = 'login';
-      pendingRegistrationUser = null;
-      // Gera um código de 4 dígitos (1000-9999) para verificação
-      const code = Math.floor(1000 + Math.random() * 9000).toString();
-      sessionStorage.setItem('twoFactorCode', code);
-      // Se estivermos usando API, envia o código por e-mail ao usuário
+  /* Login de usuários */
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+      errorEl.textContent = '';
+      // Autentica via API ou localStorage
+      function proceedToTwoFactor(userObj) {
+        // Armazena usuário para saudação após login
+        sessionStorage.setItem('currentUser', JSON.stringify(userObj));
+        // Define contexto de verificação para login e limpa qualquer cadastro pendente
+        verificationMode = 'login';
+        pendingRegistrationUser = null;
+        // Gera um código de 4 dígitos (1000-9999) para verificação
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
+        sessionStorage.setItem('twoFactorCode', code);
+        // Se estivermos usando API, envia o código por e-mail ao usuário
+        if (USE_API) {
+          apiSendCode(userObj.email, code).catch((err) => {
+            console.error('Falha ao enviar código por e-mail:', err.message);
+          });
+        } else {
+          // Fallback: exibe o código em um alerta para simular envio
+          alert('Código de verificação (simulação de envio por e-mail): ' + code);
+        }
+        // Atualiza título e subtítulo do modal para contexto de login
+        const titleEl = document.getElementById('twoFactorTitle');
+        const subtitleEl = document.getElementById('twoFactorSubtitle');
+        if (titleEl) titleEl.textContent = 'Verificação em 2 passos';
+        if (subtitleEl) subtitleEl.textContent = 'Código enviado para o seu e‑mail. Insira abaixo:';
+        // Exibe o modal de verificação
+        const modal = document.getElementById('twoFactorModal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+      }
       if (USE_API) {
-        apiSendCode(userObj.email, code).catch((err) => {
-          console.error('Falha ao enviar código por e-mail:', err.message);
-        });
+        apiLoginUser(email, password)
+          .then((userObj) => {
+            proceedToTwoFactor(userObj);
+          })
+          .catch((err) => {
+            errorEl.textContent = err.message;
+            setTimeout(() => {
+              errorEl.textContent = '';
+            }, 3000);
+          });
       } else {
-        // Fallback: exibe o código em um alerta para simular envio
-        alert('Código de verificação (simulação de envio por e-mail): ' + code);
-      }
-      // Atualiza título e subtítulo do modal para contexto de login
-      const titleEl = document.getElementById('twoFactorTitle');
-      const subtitleEl = document.getElementById('twoFactorSubtitle');
-      if (titleEl) titleEl.textContent = 'Verificação em 2 passos';
-      if (subtitleEl) subtitleEl.textContent = 'Código enviado para o seu e‑mail. Insira abaixo:';
-      // Exibe o modal de verificação
-      const modal = document.getElementById('twoFactorModal');
-      if (modal) {
-        modal.style.display = 'flex';
-      }
-    }
-    if (USE_API) {
-      apiLoginUser(email, password)
-        .then((userObj) => {
-          proceedToTwoFactor(userObj);
-        })
-        .catch((err) => {
-          errorEl.textContent = err.message;
+        const users = getUsers();
+        const user = users.find(
+          (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+        );
+        if (!user) {
+          errorEl.textContent = 'E-mail ou senha incorretos.';
           setTimeout(() => {
             errorEl.textContent = '';
           }, 3000);
-        });
-    } else {
-      const users = getUsers();
-      const user = users.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-      );
-      if (!user) {
-        errorEl.textContent = 'E-mail ou senha incorretos.';
-        setTimeout(() => {
-          errorEl.textContent = '';
-        }, 3000);
-        return;
-      }
-      proceedToTwoFactor(user);
-    }
-  });
-}
-
-/* Verificação do código de autenticação de dois fatores */
-const verifyLoginButton = document.getElementById('verifyLoginButton');
-if (verifyLoginButton) {
-  verifyLoginButton.addEventListener('click', () => {
-    const enteredCode = document.getElementById('twoFactorCode').value.trim();
-    const storedCode = sessionStorage.getItem('twoFactorCode');
-    const errorEl = document.getElementById('twoFactorError');
-    if (!storedCode) {
-      errorEl.textContent = 'Erro interno. Por favor, faça login novamente.';
-      return;
-    }
-    if (enteredCode === storedCode) {
-      // Código correto: decide entre fluxo de cadastro ou login
-      sessionStorage.removeItem('twoFactorCode');
-      errorEl.textContent = '';
-      if (verificationMode === 'register') {
-        const userObj = pendingRegistrationUser;
-        pendingRegistrationUser = null;
-        verificationMode = null;
-        if (!userObj) {
-          errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
           return;
         }
-        if (USE_API) {
-          apiRegisterUser(userObj)
-            .then(() => {
-              alert('Cadastro confirmado com sucesso! Faça login para continuar.');
-              // Esconde o modal e redireciona para a tela de login
-              const modal = document.getElementById('twoFactorModal');
-              if (modal) modal.style.display = 'none';
-              window.location.href = 'index.html';
-            })
-            .catch((err) => {
-              errorEl.textContent = err.message;
+        proceedToTwoFactor(user);
+      }
+    });
+  }
+
+  /* Verificação do código de autenticação de dois fatores */
+  const verifyLoginButton = document.getElementById('verifyLoginButton');
+  if (verifyLoginButton) {
+    verifyLoginButton.addEventListener('click', () => {
+      const enteredCode = document.getElementById('twoFactorCode').value.trim();
+      const storedCode = sessionStorage.getItem('twoFactorCode');
+      const errorEl = document.getElementById('twoFactorError');
+      if (!storedCode) {
+        errorEl.textContent = 'Erro interno. Por favor, faça login novamente.';
+        return;
+      }
+      if (enteredCode === storedCode) {
+        // Código correto: decide entre fluxo de cadastro ou login
+        sessionStorage.removeItem('twoFactorCode');
+        errorEl.textContent = '';
+        if (verificationMode === 'register') {
+          const userObj = pendingRegistrationUser;
+          pendingRegistrationUser = null;
+          verificationMode = null;
+          if (!userObj) {
+            errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
+            return;
+          }
+          if (USE_API) {
+            apiRegisterUser(userObj)
+              .then(() => {
+                alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+                // Esconde o modal e redireciona para a tela de login
+                const modal = document.getElementById('twoFactorModal');
+                if (modal) modal.style.display = 'none';
+                window.location.href = 'index.html';
+              })
+              .catch((err) => {
+                errorEl.textContent = err.message;
+              });
+          } else {
+            // Salva em localStorage
+            const users = getUsers();
+            users.push({
+              name: userObj.nome,
+              age: userObj.idade,
+              gender: userObj.sexo,
+              email: userObj.email,
+              password: userObj.senha,
             });
+            saveUsers(users);
+            alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+            const modal = document.getElementById('twoFactorModal');
+            if (modal) modal.style.display = 'none';
+            window.location.href = 'index.html';
+          }
         } else {
-          // Salva em localStorage
-          const users = getUsers();
-          users.push({
-            name: userObj.nome,
-            age: userObj.idade,
-            gender: userObj.sexo,
-            email: userObj.email,
-            password: userObj.senha,
-          });
-          saveUsers(users);
-          alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+          // Fluxo de login
+          if (!USE_API) {
+            const emailField = document.getElementById('loginEmail');
+            const emailVal = emailField ? emailField.value.trim() : null;
+            if (emailVal) {
+              const users = getUsers();
+              const u = users.find((usr) => usr.email.toLowerCase() === emailVal.toLowerCase());
+              if (u) sessionStorage.setItem('currentUser', JSON.stringify(u));
+            }
+          }
+          // Fecha o modal de 2FA e redireciona à home
           const modal = document.getElementById('twoFactorModal');
-          if (modal) modal.style.display = 'none';
-          window.location.href = 'index.html';
+          if (modal) {
+            modal.style.display = 'none';
+          }
+          window.location.href = 'home.html';
         }
       } else {
-        // Fluxo de login
-        if (!USE_API) {
-          const emailField = document.getElementById('loginEmail');
-          const emailVal = emailField ? emailField.value.trim() : null;
-          if (emailVal) {
-            const users = getUsers();
-            const u = users.find((usr) => usr.email.toLowerCase() === emailVal.toLowerCase());
-            if (u) sessionStorage.setItem('currentUser', JSON.stringify(u));
-          }
-        }
-        // Fecha o modal de 2FA e redireciona à home
-        const modal = document.getElementById('twoFactorModal');
-        if (modal) {
-          modal.style.display = 'none';
-        }
-        window.location.href = 'home.html';
+        errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
       }
-    } else {
-      errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
-    }
-  });
+    });
+  }
+
+  /* Link de recuperação de senha */
+  const forgotLink = document.getElementById('forgotPasswordLink');
+  if (forgotLink) {
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      alert(
+        'Recuperação de senha ainda não implementada neste protótipo. Por favor, cadastre-se novamente ou contate o suporte.'
+      );
+    });
+  }
+});
+
+/* ====================
+     Funções auxiliares para planos de treino
+     ====================
+     Os planos são armazenados em localStorage com a chave 'revitalizePlans'.
+     Cada plano possui um id único (timestamp), métricas (altura, peso, objetivo),
+     uma lista de treinos (com nomes e exercícios) e um histórico de versões
+     antigas para possibilitar reversões.  */
+function getPlans() {
+  try {
+    return JSON.parse(localStorage.getItem('revitalizePlans')) || [];
+  } catch (e) {
+    return [];
+  }
 }
 
-/* Link de recuperação de senha */
-const forgotLink = document.getElementById('forgotPasswordLink');
-if (forgotLink) {
-  forgotLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    alert(
-      'Recuperação de senha ainda não implementada neste protótipo. Por favor, cadastre-se novamente ou contate o suporte.'
-    );
-  });
+function savePlans(plans) {
+  localStorage.setItem('revitalizePlans', JSON.stringify(plans));
 }
-});
+
+/* Funções auxiliares para histórico de IMC. Cada entrada contém
+   data, peso, altura, valor calculado e classificação. */
+function getImcHistory() {
+  try {
+    return JSON.parse(localStorage.getItem('revitalizeImcHistory')) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveImcHistory(history) {
+  localStorage.setItem('revitalizeImcHistory', JSON.stringify(history));
+}
+
+/* ====================
+   Página Home
+   ====================
+   A home exibe uma saudação ao usuário logado e botões para navegar
+   entre as funcionalidades principais (criar plano, ajustar plano,
+   monitoramento e calculadora IMC). Também possui um botão de sair
+   que remove o usuário da sessão e retorna à tela de login. */
+if (document.body.classList.contains('home')) {
+  const greeting = document.getElementById('greeting');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const createPlanBtn = document.getElementById('createPlanBtn');
+  const adjustPlanBtn = document.getElementById('adjustPlanBtn');
+  const monitoringBtn = document.getElementById('monitoringBtn');
+  const imcBtn = document.getElementById('imcBtn');
+
+  // Exibe saudação com o nome do usuário logado
+  const userStr = sessionStorage.getItem('currentUser');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    greeting.textContent = `Olá, ${user.name}`;
+  }
+
+  // Navegação
+  if (createPlanBtn) {
+    createPlanBtn.addEventListener('click', () => {
+      window.location.href = 'plan.html';
+    });
+  }
+  if (adjustPlanBtn) {
+    adjustPlanBtn.addEventListener('click', () => {
+      window.location.href = 'adjust.html';
+    });
+  }
+  if (monitoringBtn) {
+    monitoringBtn.addEventListener('click', () => {
+      window.location.href = 'monitoring.html';
+    });
+  }
+  if (imcBtn) {
+    imcBtn.addEventListener('click', () => {
+      window.location.href = 'imc.html';
+    });
+  }
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    });
+  }
+}
+
+/* ====================
+     Página Criar Plano (plan.html)
+     ====================
+     Esta página coleta altura, peso e objetivo do usuário e gera
+     automaticamente um plano de treino padrão com três treinos (A, B, C).
+     Os dados são validados e armazenados em localStorage.  */
+if (document.body.classList.contains('plan')) {
+  const backBtn = document.getElementById('backHomeFromPlan');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.history.back();
+    });
+  }
+  const planForm = document.getElementById('planForm');
+  if (planForm) {
+    planForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const alturaVal = document.getElementById('altura').value.trim();
+      const pesoVal = document.getElementById('peso').value.trim();
+      const objetivoVal = document.getElementById('objetivo').value;
+      const errorEl = document.getElementById('planError');
+      errorEl.textContent = '';
+      // Valida altura e peso como números positivos (duas casas decimais são permitidas via step)
+      const alturaNum = parseFloat(alturaVal);
+      const pesoNum = parseFloat(pesoVal);
+      if (!alturaVal || isNaN(alturaNum) || alturaNum <= 0) {
+        errorEl.textContent = 'Informe uma altura válida (em metros).';
+        return;
+      }
+      if (!pesoVal || isNaN(pesoNum) || pesoNum <= 0) {
+        errorEl.textContent = 'Informe um peso válido (em quilogramas).';
+        return;
+      }
+      if (!objetivoVal) {
+        errorEl.textContent = 'Selecione um objetivo.';
+        return;
+      }
+      // Cria o plano
+      const plans = getPlans();
+      const newPlan = {
+        id: Date.now(),
+        height: parseFloat(alturaVal),
+        weight: parseFloat(pesoVal),
+        objective: objetivoVal,
+        trainings: [
+          {
+            name: 'Treino A',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+          {
+            name: 'Treino B',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+          {
+            name: 'Treino C',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+        ],
+        history: [],
+      };
+      plans.push(newPlan);
+      savePlans(plans);
+      alert('Plano criado com sucesso! Você poderá ajustá-lo posteriormente.');
+      // Após criar, volta para a home ou abre a página de ajustes
+      window.location.href = 'adjust.html';
+    });
+  }
+}

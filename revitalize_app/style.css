@@ -1,13 +1,12 @@
-
 /* Paleta de cores principal */
 :root {
-  --primary-color: #195656;    
-  --secondary-color: #285537;  
-  --accent-color: #54EAF0;     
-  --light-color: #FEFEFE;     
-  --gray-color: #B1AFAF;       
-  --dark-color: #373435;       
-  --error-color: #C0392B;      
+  --primary-color: #195656;
+  --secondary-color: #285537;
+  --accent-color: #54EAF0;
+  --light-color: #FEFEFE;
+  --gray-color: #B1AFAF;
+  --dark-color: #373435;
+  --error-color: #C0392B;
 }
 
 /* Reset básico */
@@ -26,6 +25,19 @@ body {
 /* Fundos específicos para cada página */
 body.register {
   background: url('assets/background_login.png') no-repeat center center / cover;
+}
+
+body.login,
+body.register {
+  background: url('assets/background_login.png') no-repeat center center / cover;
+}
+
+body.home,
+body.plan,
+body.adjust,
+body.monitoring,
+body.imc {
+  background: url('assets/background_app.png') no-repeat center center / cover;
 }
 
 /* Camada de sobreposição que centraliza o conteúdo */
@@ -196,4 +208,102 @@ body.register {
   border: 1px solid var(--gray-color);
   border-radius: 6px;
   margin-bottom: 1rem;
+}
+
+/* ====================
+   Estilos da tela Home
+   ====================
+   A página inicial exibe uma saudação, um botão de logout e uma grade
+   de funcionalidades. Cada card de funcionalidade possui um ícone e
+   um rótulo. A grade se adapta ao tamanho da tela e mantém espaçamento
+   consistente.  */
+
+body.home .overlay {
+  justify-content: flex-start;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 1rem auto;
+  padding: 0.5rem 0;
+  color: var(--light-color);
+  font-weight: bold;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.home-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.home-logo img {
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.feature-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.feature-label {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* ====================
+   Estilos da criação de plano (plan.html)
+   ====================
+   O formulário de criação de plano utiliza a mesma caixa de formulário
+   do cadastro, mas com campos específicos para altura, peso e
+   objetivo. A página inclui um cabeçalho com botão de voltar. */
+
+body.plan .form-container {
+  max-width: 450px;
+}
+
+body.plan select {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
