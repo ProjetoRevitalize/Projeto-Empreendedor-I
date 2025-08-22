@@ -507,7 +507,6 @@ if (document.body.classList.contains('plan')) {
     e.target.value = val;
   });
 
-  // <<< NOVO: máscara para PESO >>>
   const pesoInput = document.getElementById('peso');
   pesoInput.addEventListener('input', (e) => {
     let val = e.target.value;
@@ -532,7 +531,6 @@ if (document.body.classList.contains('plan')) {
 
       errorEl.textContent = '';
 
-      // Converte a altura de string "x,xx" para número
       const alturaNum = parseFloat(alturaVal.replace(',', '.'));
       const pesoNum = parseFloat(pesoVal);
 
@@ -548,6 +546,50 @@ if (document.body.classList.contains('plan')) {
         errorEl.textContent = 'Selecione um objetivo.';
         return;
       }
+
+      // Cria o plano
+      const plans = getPlans();
+      const newPlan = {
+        id: Date.now(),
+        height: parseFloat(alturaVal),
+        weight: parseFloat(pesoVal),
+        objective: objetivoVal,
+        trainings: [
+          {
+            name: 'Treino A',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+          {
+            name: 'Treino B',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+          {
+            name: 'Treino C',
+            exercises: [
+              { name: 'Aquecimento', value: '15min' },
+              { name: 'Exercício 1', value: '3x12' },
+              { name: 'Exercício 2', value: '3x12' },
+              { name: 'Exercício 3', value: '3x12' },
+            ],
+          },
+        ],
+        history: [],
+      };
+      plans.push(newPlan);
+      savePlans(plans);
+      alert('Plano criado com sucesso! Você poderá ajustá-lo posteriormente.');
+      // Após criar, volta para a home ou abre a página de ajustes
+      window.location.href = 'adjust.html';
     });
   }
 }
