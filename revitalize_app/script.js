@@ -492,21 +492,31 @@ if (document.body.classList.contains('plan')) {
   }
 
   const alturaInput = document.getElementById('altura');
-
   alturaInput.addEventListener('input', (e) => {
     let val = e.target.value;
-    val = val.replace(/\D/g, ''); 
-
+    val = val.replace(/\D/g, '');
     if (val.length > 2) {
       val = val.slice(0, -2) + ',' + val.slice(-2);
     } else if (val.length === 2) {
-      val = val[0] + ',' + val[1]; 
+      val = val[0] + ',' + val[1];
     } else if (val.length === 1) {
-      val = val; 
+      val = val;
     } else {
       val = '';
     }
+    e.target.value = val;
+  });
 
+  // <<< NOVO: máscara para PESO >>>
+  const pesoInput = document.getElementById('peso');
+  pesoInput.addEventListener('input', (e) => {
+    let val = e.target.value;
+    // só permite números
+    val = val.replace(/\D/g, '');
+    // máximo 3 dígitos
+    if (val.length > 3) {
+      val = val.slice(0, 3);
+    }
     e.target.value = val;
   });
 
@@ -514,13 +524,15 @@ if (document.body.classList.contains('plan')) {
   if (planForm) {
     planForm.addEventListener('submit', (e) => {
       e.preventDefault();
+
       const alturaVal = document.getElementById('altura').value.trim();
       const pesoVal = document.getElementById('peso').value.trim();
       const objetivoVal = document.getElementById('objetivo').value;
       const errorEl = document.getElementById('planError');
+
       errorEl.textContent = '';
 
-      // Converte a altura de string "x,xx" para número 1.89
+      // Converte a altura de string "x,xx" para número
       const alturaNum = parseFloat(alturaVal.replace(',', '.'));
       const pesoNum = parseFloat(pesoVal);
 
@@ -536,50 +548,6 @@ if (document.body.classList.contains('plan')) {
         errorEl.textContent = 'Selecione um objetivo.';
         return;
       }
-
-      // Cria o plano
-      const plans = getPlans();
-      const newPlan = {
-        id: Date.now(),
-        height: alturaNum,
-        weight: pesoNum,
-        objective: objetivoVal,
-        trainings: [
-          {
-            name: 'Treino A',
-            exercises: [
-              { name: 'Aquecimento', value: '15min' },
-              { name: 'Exercício 1', value: '3x12' },
-              { name: 'Exercício 2', value: '3x12' },
-              { name: 'Exercício 3', value: '3x12' },
-            ],
-          },
-          {
-            name: 'Treino B',
-            exercises: [
-              { name: 'Aquecimento', value: '15min' },
-              { name: 'Exercício 1', value: '3x12' },
-              { name: 'Exercício 2', value: '3x12' },
-              { name: 'Exercício 3', value: '3x12' },
-            ],
-          },
-          {
-            name: 'Treino C',
-            exercises: [
-              { name: 'Aquecimento', value: '15min' },
-              { name: 'Exercício 1', value: '3x12' },
-              { name: 'Exercício 2', value: '3x12' },
-              { name: 'Exercício 3', value: '3x12' },
-            ],
-          },
-        ],
-        history: [],
-      };
-
-      plans.push(newPlan);
-      savePlans(plans);
-      alert('Plano criado com sucesso! Você poderá ajustá-lo posteriormente.');
-      window.location.href = 'adjust.html';
     });
   }
 }
