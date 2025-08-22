@@ -411,13 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ====================
-     Funções auxiliares para planos de treino
-     ====================
-     Os planos são armazenados em localStorage com a chave 'revitalizePlans'.
-     Cada plano possui um id único (timestamp), métricas (altura, peso, objetivo),
-     uma lista de treinos (com nomes e exercícios) e um histórico de versões
-     antigas para possibilitar reversões.  */
+/* Funções auxiliares para planos de treino */
 function getPlans() {
   try {
     return JSON.parse(localStorage.getItem('revitalizePlans')) || [];
@@ -430,8 +424,7 @@ function savePlans(plans) {
   localStorage.setItem('revitalizePlans', JSON.stringify(plans));
 }
 
-/* Funções auxiliares para histórico de IMC. Cada entrada contém
-   data, peso, altura, valor calculado e classificação. */
+/* Funções auxiliares para histórico de IMC. */
 function getImcHistory() {
   try {
     return JSON.parse(localStorage.getItem('revitalizeImcHistory')) || [];
@@ -444,13 +437,7 @@ function saveImcHistory(history) {
   localStorage.setItem('revitalizeImcHistory', JSON.stringify(history));
 }
 
-/* ====================
-   Página Home
-   ====================
-   A home exibe uma saudação ao usuário logado e botões para navegar
-   entre as funcionalidades principais (criar plano, ajustar plano,
-   monitoramento e calculadora IMC). Também possui um botão de sair
-   que remove o usuário da sessão e retorna à tela de login. */
+/* Página Home */
 if (document.body.classList.contains('home')) {
   const greeting = document.getElementById('greeting');
   const logoutBtn = document.getElementById('logoutBtn');
@@ -495,12 +482,7 @@ if (document.body.classList.contains('home')) {
   }
 }
 
-/* ====================
-     Página Criar Plano (plan.html)
-     ====================
-     Esta página coleta altura, peso e objetivo do usuário e gera
-     automaticamente um plano de treino padrão com três treinos (A, B, C).
-     Os dados são validados e armazenados em localStorage.  */
+/* Página Criar Plano */
 if (document.body.classList.contains('plan')) {
   const backBtn = document.getElementById('backHomeFromPlan');
   if (backBtn) {
@@ -508,6 +490,26 @@ if (document.body.classList.contains('plan')) {
       window.history.back();
     });
   }
+
+  const alturaInput = document.getElementById('altura');
+
+  alturaInput.addEventListener('input', (e) => {
+    let val = e.target.value;
+    val = val.replace(/\D/g, ''); 
+
+    if (val.length > 2) {
+      val = val.slice(0, -2) + ',' + val.slice(-2);
+    } else if (val.length === 2) {
+      val = val[0] + ',' + val[1]; 
+    } else if (val.length === 1) {
+      val = val; 
+    } else {
+      val = '';
+    }
+
+    e.target.value = val;
+  });
+
   const planForm = document.getElementById('planForm');
   if (planForm) {
     planForm.addEventListener('submit', (e) => {
@@ -517,9 +519,11 @@ if (document.body.classList.contains('plan')) {
       const objetivoVal = document.getElementById('objetivo').value;
       const errorEl = document.getElementById('planError');
       errorEl.textContent = '';
-      // Valida altura e peso como números positivos (duas casas decimais são permitidas via step)
-      const alturaNum = parseFloat(alturaVal);
+
+      // Converte a altura de string "x,xx" para número 1.89
+      const alturaNum = parseFloat(alturaVal.replace(',', '.'));
       const pesoNum = parseFloat(pesoVal);
+
       if (!alturaVal || isNaN(alturaNum) || alturaNum <= 0) {
         errorEl.textContent = 'Informe uma altura válida (em metros).';
         return;
@@ -532,12 +536,13 @@ if (document.body.classList.contains('plan')) {
         errorEl.textContent = 'Selecione um objetivo.';
         return;
       }
+
       // Cria o plano
       const plans = getPlans();
       const newPlan = {
         id: Date.now(),
-        height: parseFloat(alturaVal),
-        weight: parseFloat(pesoVal),
+        height: alturaNum,
+        weight: pesoNum,
         objective: objetivoVal,
         trainings: [
           {
@@ -570,10 +575,10 @@ if (document.body.classList.contains('plan')) {
         ],
         history: [],
       };
+
       plans.push(newPlan);
       savePlans(plans);
       alert('Plano criado com sucesso! Você poderá ajustá-lo posteriormente.');
-      // Após criar, volta para a home ou abre a página de ajustes
       window.location.href = 'adjust.html';
     });
   }
