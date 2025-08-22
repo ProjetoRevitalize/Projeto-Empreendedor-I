@@ -118,12 +118,17 @@ body.imc {
 /* Estilo do grupo de rádio */
 .radio-group {
   display: flex;
-  align-items: center;
   gap: 1rem;
 }
 
 .radio-group input {
   margin-right: 0.3rem;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 /* Botões */
