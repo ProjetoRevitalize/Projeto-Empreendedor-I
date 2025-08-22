@@ -216,6 +216,22 @@ body.imc {
 }
 
 /* Estilos da tela Home */
+body.home .app-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start; /* com margin-left:auto no botão, ele vai pra direita */
+}
+
+body.home .app-header #greeting {
+  order: 1;
+}
+
+body.home .app-header #logoutBtn {
+  order: 2;
+  margin-left: auto !important;   
+  position: static !important;     
+  inset: auto !important;          
+}
 
 body.home .overlay {
   justify-content: flex-start;
@@ -291,12 +307,16 @@ body.home .overlay {
 
 /* Estilos da criação de plano */
 
+body.plan .app-header .icon-btn {
+  margin-left: auto; 
+}
+
 .app-header {
   position: relative;
   display: flex;
   justify-content: center;
-  /* centraliza o título */
   align-items: center;
+  flex-direction: row;
   padding: 1rem;
 }
 

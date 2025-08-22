@@ -450,7 +450,7 @@ if (document.body.classList.contains('home')) {
   const userStr = sessionStorage.getItem('currentUser');
   if (userStr) {
     const user = JSON.parse(userStr);
-    greeting.textContent = `Olá, ${user.name}`;
+    greeting.textContent = `Bem-Vindo, ${user.name}`;
   }
 
   // Navegação
