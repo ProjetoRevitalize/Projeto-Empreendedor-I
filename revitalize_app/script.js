@@ -593,3 +593,175 @@ if (document.body.classList.contains('plan')) {
     });
   }
 }
+
+/* Página Ajustar Plano */
+if (document.body.classList.contains('adjust')) {
+  const backBtn = document.getElementById('backHomeFromAdjust');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.location.href = "home.html";
+    });
+  }
+  const planListEl = document.getElementById('planList');
+  const planDetailsEl = document.getElementById('planDetails');
+  const planNameTitle = document.getElementById('planNameTitle');
+  const adjustForm = document.getElementById('adjustForm');
+  const trainingsContainer = document.getElementById('trainingsContainer');
+  const cancelAdjustBtn = document.getElementById('cancelAdjust');
+  const saveAdjustBtn = document.getElementById('saveAdjust');
+
+  // Renderiza a lista de planos
+  function renderPlanList() {
+    const plans = getPlans();
+    if (!planListEl) return;
+    planListEl.innerHTML = '';
+    if (plans.length === 0) {
+      const p = document.createElement('p');
+      p.textContent = 'Nenhum plano cadastrado.';
+      p.style.color = 'var(--light-color)';
+      planListEl.appendChild(p);
+      return;
+    }
+    plans.forEach((plan) => {
+      const item = document.createElement('div');
+      item.classList.add('plan-item');
+      const title = document.createElement('h3');
+      // Usa o objetivo ou ID como nome básico do plano
+      title.textContent = plan.objective || 'Plano';
+      const actions = document.createElement('div');
+      actions.classList.add('plan-actions');
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Editar';
+      editBtn.classList.add('edit-btn');
+      editBtn.dataset.id = plan.id;
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Deletar';
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.dataset.id = plan.id;
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+      item.appendChild(title);
+      item.appendChild(actions);
+      planListEl.appendChild(item);
+    });
+  }
+
+  // Abre a interface de detalhes de um plano para edição
+  function openPlanDetails(planId) {
+    const plans = getPlans();
+    const plan = plans.find((p) => p.id == planId);
+    if (!plan || !planDetailsEl) return;
+    // Preenche campos
+    document.getElementById('adjustAltura').value = plan.height;
+    document.getElementById('adjustPeso').value = plan.weight;
+    document.getElementById('adjustObjetivo').value = plan.objective;
+    planNameTitle.textContent = `Plano (${plan.objective})`;
+    // Renderiza treinos
+    trainingsContainer.innerHTML = '';
+    plan.trainings.forEach((training, tIndex) => {
+      const trainingDiv = document.createElement('div');
+      trainingDiv.classList.add('training-item');
+      // Nome do treino
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = training.name;
+      nameInput.classList.add('training-name');
+      nameInput.dataset.tIndex = tIndex;
+      trainingDiv.appendChild(nameInput);
+      // Lista de exercícios
+      const ul = document.createElement('ul');
+      ul.classList.add('exercise-list');
+      training.exercises.forEach((exercise, eIndex) => {
+        const li = document.createElement('li');
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = exercise.name;
+        const valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.value = exercise.value;
+        valueInput.dataset.tIndex = tIndex;
+        valueInput.dataset.eIndex = eIndex;
+        valueInput.style.marginLeft = '0.5rem';
+        valueInput.style.width = '80px';
+        li.appendChild(nameSpan);
+        li.appendChild(valueInput);
+        ul.appendChild(li);
+      });
+      trainingDiv.appendChild(ul);
+      trainingsContainer.appendChild(trainingDiv);
+    });
+    planDetailsEl.style.display = 'block';
+    // Armazena ID do plano atualmente em edição
+    planDetailsEl.dataset.currentId = plan.id;
+  }
+
+  // Listeners de clique para editar e deletar
+  if (planListEl) {
+    planListEl.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.classList.contains('edit-btn')) {
+        const planId = target.dataset.id;
+        openPlanDetails(planId);
+      }
+      if (target.classList.contains('delete-btn')) {
+        const planId = target.dataset.id;
+        if (confirm('Tem certeza que deseja deletar este plano?')) {
+          let plans = getPlans();
+          plans = plans.filter((p) => p.id != planId);
+          savePlans(plans);
+          renderPlanList();
+        }
+      }
+    });
+  }
+
+  // Cancelar edição
+  if (cancelAdjustBtn) {
+    cancelAdjustBtn.addEventListener('click', () => {
+      planDetailsEl.style.display = 'none';
+    });
+  }
+
+  // Salvar alterações
+  if (adjustForm) {
+    adjustForm.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const planId = planDetailsEl.dataset.currentId;
+      let plans = getPlans();
+      const planIndex = plans.findIndex((p) => p.id == planId);
+      if (planIndex === -1) return;
+      const plan = plans[planIndex];
+      // Salva a versão atual no histórico antes de modificar
+      const planCopy = JSON.parse(JSON.stringify(plan));
+      plan.history.push(planCopy);
+      // Atualiza métricas
+      plan.height = parseFloat(document.getElementById('adjustAltura').value);
+      plan.weight = parseFloat(document.getElementById('adjustPeso').value);
+      plan.objective = document.getElementById('adjustObjetivo').value;
+      // Atualiza treinos
+      // Percorre inputs de nomes de treinos
+      const nameInputs = trainingsContainer.querySelectorAll('.training-name');
+      nameInputs.forEach((input) => {
+        const tIndex = parseInt(input.dataset.tIndex);
+        plan.trainings[tIndex].name = input.value || plan.trainings[tIndex].name;
+      });
+      // Atualiza valores dos exercícios
+      // Seleciona os inputs de exercícios usando o atributo data-e-index (gerado via dataset.eIndex)
+      const exerciseInputs = trainingsContainer.querySelectorAll('input[data-e-index]');
+      exerciseInputs.forEach((input) => {
+        const tIndex = parseInt(input.dataset.tIndex);
+        const eIndex = parseInt(input.dataset.eIndex);
+        plan.trainings[tIndex].exercises[eIndex].value = input.value || plan.trainings[tIndex].exercises[eIndex].value;
+      });
+      // Salva de volta
+      plans[planIndex] = plan;
+      savePlans(plans);
+      alert('Plano atualizado com sucesso!');
+      planDetailsEl.style.display = 'none';
+      renderPlanList();
+    });
+  }
+
+  // Inicializa lista
+  renderPlanList();
+}
+
