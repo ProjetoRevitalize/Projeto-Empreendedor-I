@@ -40,6 +40,13 @@ body.imc {
   background: url('assets/background_app.png') no-repeat center center / cover;
 }
 
+#resetModal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+
 /* Camada de sobreposição que centraliza o conteúdo */
 .overlay {
   display: flex;

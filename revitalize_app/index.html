@@ -22,25 +22,46 @@
     <form id="loginForm" class="form-container">
       <div class="input-group">
         <label for="loginEmail">E‑mail</label>
-        <input type="email" id="loginEmail" name="email" placeholder="Seuemail@exemplo.com" autocomplete="off" required />
+        <input type="email" id="loginEmail" name="email" placeholder="Seuemail@exemplo.com" autocomplete="off"
+          required />
       </div>
       <div class="input-group">
         <label for="loginPassword">Senha</label>
-        <input type="password" id="loginPassword" name="password" placeholder="Digite sua senha" autocomplete="off" required />
+        <input type="password" id="loginPassword" name="password" placeholder="Digite sua senha" autocomplete="off"
+          required />
       </div>
       <p id="loginError" class="error-message"></p>
       <button type="submit" class="btn primary">Entrar</button>
       <p class="link">Não tem conta? <a href="register.html">Cadastrar‑se</a></p>
       <p class="link"><a href="#" id="forgotPasswordLink">Esqueci minha senha?</a></p>
     </form>
-    <!-- Modal de autenticação em dois fatores (invisível até ser acionado) -->
-    <div id="twoFactorModal" class="modal">
+    <!-- Modal de recuperação de senha -->
+    <div id="resetModal" class="modal">
       <div class="modal-content">
-        <h3 id="twoFactorTitle">Verificação em 2 passos</h3>
-        <p id="twoFactorSubtitle">Código enviado para o seu e‑mail. Insira abaixo:</p>
-        <input type="text" id="twoFactorCode" placeholder="Código de verificação" autocomplete="off"/>
-        <p id="twoFactorError" class="error-message"></p>
-        <button id="verifyLoginButton" class="btn primary">Verificar</button>
+        <h3 id="resetTitle">Recuperar senha</h3>
+        <!-- Etapa 1: Email -->
+        <div id="resetStepEmail">
+          <p>Digite seu e-mail cadastrado:</p>
+          <input type="email" id="resetEmail" placeholder="Seu e-mail" autocomplete="off" />
+          <p id="resetError" class="error-message"></p>
+          <button id="resetRequestBtn" class="btn primary">Enviar código</button>
+        </div>
+        <!-- Etapa 2: Código -->
+        <div id="resetStepCode" style="display:none;">
+          <p>Digite o código recebido no e-mail:</p>
+          <input type="text" id="resetCode" placeholder="Código de verificação" autocomplete="off" />
+          <p id="resetErrorCode" class="error-message"></p>
+          <button id="resetVerifyBtn" class="btn primary">Verificar código</button>
+        </div>
+        <!-- Etapa 3: Nova senha -->
+        <div id="resetStepPassword" style="display:none;">
+          <p>Digite sua nova senha:</p>
+          <input type="password" id="resetNewPassword" placeholder="Nova senha" autocomplete="off" />
+          <input type="password" id="resetConfirmPassword" placeholder="Confirme a nova senha" autocomplete="off" />
+          <p id="resetErrorPassword" class="error-message"></p>
+          <button id="resetChangeBtn" class="btn primary">Alterar senha</button>
+        </div>
+        <button id="resetCloseBtn" class="btn">Fechar</button>
       </div>
     </div>
   </div>

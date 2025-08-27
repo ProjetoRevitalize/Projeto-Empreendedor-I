@@ -402,53 +402,116 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* Link de recuperação de senha */
+  /* ------------ Recuperação de senha ------------ */
   const forgotLink = document.getElementById('forgotPasswordLink');
+  const resetModal = document.getElementById('resetModal');
+  const closeBtn = document.getElementById('resetCloseBtn');
+
+  let resetEmailGlobal = null;
+  let resetCodeGlobal = null;
+
+  // Abrir modal
   if (forgotLink) {
     forgotLink.addEventListener('click', (e) => {
       e.preventDefault();
-
-      const email = prompt("Digite seu e-mail para recuperar a senha:");
-      if (!email) return;
-
-      // 1. Envia requisição para o backend gerar e mandar código por e-mail
-      fetch("http://localhost:3000/api/request-password-reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error("Erro ao solicitar recuperação");
-          return res.json();
-        })
-        .then(() => {
-          // 2. Pede o código recebido no e-mail
-          const code = prompt("Digite o código que você recebeu no e-mail:");
-          if (!code) return;
-
-          // 3. Pede a nova senha
-          const novaSenha = prompt("Digite sua nova senha:");
-          if (!novaSenha) return;
-
-          // 4. Envia ao backend para validar e alterar
-          return fetch("http://localhost:3000/api/reset-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, code, novaSenha })
-          });
-        })
-        .then((res) => {
-          if (res && !res.ok) throw new Error("Erro ao alterar senha");
-          if (res) {
-            alert("Senha alterada com sucesso! Faça login novamente.");
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          alert("Falha na recuperação de senha. Verifique seu e-mail e tente novamente.");
-        });
+      resetModal.style.display = 'flex';
+      document.getElementById('resetStepEmail').style.display = 'block';
+      document.getElementById('resetStepCode').style.display = 'none';
+      document.getElementById('resetStepPassword').style.display = 'none';
     });
   }
+
+  // Fechar modal
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      resetModal.style.display = 'none';
+    });
+  }
+
+  // Etapa 1: Solicitar código
+  document.getElementById('resetRequestBtn').addEventListener('click', () => {
+    const email = document.getElementById('resetEmail').value.trim();
+    const errorEl = document.getElementById('resetError');
+    errorEl.textContent = '';
+
+    if (!email) {
+      errorEl.textContent = 'Informe seu e-mail.';
+      return;
+    }
+
+    fetch("http://localhost:3000/api/request-password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    })
+      .then(res => {
+        if (res.status === 404) throw new Error("E-mail não encontrado.");
+        if (!res.ok) throw new Error("Erro ao solicitar recuperação.");
+        return res.json();
+      })
+      .then(() => {
+        resetEmailGlobal = email;
+        document.getElementById('resetStepEmail').style.display = 'none';
+        document.getElementById('resetStepCode').style.display = 'block';
+      })
+      .catch(err => {
+        errorEl.textContent = err.message;
+      });
+  });
+
+  // Etapa 2: Validar código
+  document.getElementById('resetVerifyBtn').addEventListener('click', () => {
+    const code = document.getElementById('resetCode').value.trim();
+    const errorEl = document.getElementById('resetErrorCode');
+    errorEl.textContent = '';
+
+    if (!code) {
+      errorEl.textContent = 'Digite o código recebido.';
+      return;
+    }
+
+    resetCodeGlobal = code;
+    document.getElementById('resetStepCode').style.display = 'none';
+    document.getElementById('resetStepPassword').style.display = 'block';
+  });
+
+  // Etapa 3: Alterar senha
+  document.getElementById('resetChangeBtn').addEventListener('click', () => {
+    const novaSenha = document.getElementById('resetNewPassword').value;
+    const confirmSenha = document.getElementById('resetConfirmPassword').value;
+    const errorEl = document.getElementById('resetErrorPassword');
+    errorEl.textContent = '';
+
+    // 🔹 Validação igual cadastro (ajuste conforme suas regras)
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
+    if (!regex.test(novaSenha)) {
+      errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
+      return;
+    }
+
+    if (novaSenha !== confirmSenha) {
+      errorEl.textContent = 'As senhas não coincidem.';
+      return;
+    }
+
+    fetch("http://localhost:3000/api/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: resetEmailGlobal, code: resetCodeGlobal, novaSenha })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Erro ao alterar senha.");
+        return res.json();
+      })
+      .then(() => {
+        alert("Senha alterada com sucesso! Faça login novamente.");
+        resetModal.style.display = 'none';
+      })
+      .catch(err => {
+        errorEl.textContent = err.message;
+      });
+  });
+
 
 
 
