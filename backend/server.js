@@ -65,7 +65,7 @@ const mailTransporter = nodemailer.createTransport({
   },
 });
 
-// envio de código de verificação por e-mail
+// Endpoint para envio de código de verificação por e-mail
 app.post('/api/send-code', (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) {
@@ -96,9 +96,11 @@ app.post('/api/request-password-reset', (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ erro: 'Email é obrigatório' });
 
+  // gera código de 6 dígitos
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   recoveryCodes[email] = code;
 
+  // envia email com código
   const mailOptions = {
     from: 'projetorevitalize2025@gmail.com',
     to: email,
@@ -111,11 +113,9 @@ app.post('/api/request-password-reset', (req, res) => {
       console.error('Erro ao enviar e-mail:', err);
       return res.status(500).json({ erro: 'Falha ao enviar e-mail' });
     }
-    console.log(`Código enviado para ${email}: ${code}`); 
-    return res.json({ mensagem: 'Código enviado com sucesso!' });
+    return res.json({ mensagem: 'Código enviado para seu e-mail' });
   });
 });
-
 
 // Rota para confirmar código e atualizar senha
 app.post('/api/reset-password', (req, res) => {
@@ -145,6 +145,7 @@ app.post('/api/reset-password', (req, res) => {
     );
   });
 });
+
 
 // Rota de cadastro
 app.post('/api/register', (req, res) => {
