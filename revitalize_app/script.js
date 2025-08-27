@@ -445,12 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ email })
     })
       .then(res => {
-        if (res.status === 404) throw new Error("E-mail não encontrado.");
-        if (!res.ok) throw new Error("Erro ao solicitar recuperação.");
+        if (!res.ok) return res.json().then(err => { throw new Error(err.erro || "Erro ao solicitar recuperação."); });
         return res.json();
       })
       .then(() => {
         resetEmailGlobal = email;
+        console.log("📧 E-mail salvo para reset:", resetEmailGlobal);
         document.getElementById('resetStepEmail').style.display = 'none';
         document.getElementById('resetStepCode').style.display = 'block';
       })
@@ -471,6 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     resetCodeGlobal = code;
+    console.log("🔑 Código salvo para reset:", resetCodeGlobal);
     document.getElementById('resetStepCode').style.display = 'none';
     document.getElementById('resetStepPassword').style.display = 'block';
   });
@@ -482,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorEl = document.getElementById('resetErrorPassword');
     errorEl.textContent = '';
 
-    // 🔹 Validação igual cadastro (ajuste conforme suas regras)
+    // 🔹 Validação igual cadastro
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
     if (!regex.test(novaSenha)) {
       errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
@@ -494,21 +495,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    console.log("📨 Enviando para reset-password:", {
+      email: resetEmailGlobal,
+      code: resetCodeGlobal,
+      novaSenha: novaSenha
+    });
+
+    // Envia os dados para o backend para alterar a senha
     fetch("http://localhost:3000/api/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: resetEmailGlobal, code: resetCodeGlobal, novaSenha })
+      body: JSON.stringify({
+        email: resetEmailGlobal,
+        code: resetCodeGlobal,
+        novaSenha: novaSenha
+      })
     })
       .then(res => {
-        if (!res.ok) throw new Error("Erro ao alterar senha.");
+        if (!res.ok) return res.json().then(err => { throw new Error(err.erro || "Erro ao alterar senha."); });
         return res.json();
       })
       .then(() => {
         alert("Senha alterada com sucesso! Faça login novamente.");
-        resetModal.style.display = 'none';
+        resetModal.style.display = 'none'; // Fechar modal
       })
       .catch(err => {
-        errorEl.textContent = err.message;
+        errorEl.textContent = err.message; // Mostrar erro real vindo do backend
+        console.error(" Erro no reset:", err.message);
       });
   });
 
