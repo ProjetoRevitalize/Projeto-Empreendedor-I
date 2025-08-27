@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,41 +56,29 @@ db.serialize(() => {
   );
 });
 
-let mailTransporter = null;
-try {
-  const nodemailer = require('nodemailer');
-  if (process.env.MAIL_USER && process.env.MAIL_PASS) {
-    mailTransporter = nodemailer.createTransport({
-      service: process.env.MAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
-  }
-} catch (e) {
-  console.warn(
-    'nodemailer não está instalado. Os códigos de verificação serão exibidos no console.'
-  );
-}
+// Configuração fixa do Nodemailer com Gmail
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'projetorevitalize2025@gmail.com', // seu e-mail
+    pass: 'tqpp dzui qfnl gboe', // senha de aplicativo do Gmail
+  },
+});
 
-// Endpoint para envio de código de verificação por e-mail
+// envio de código de verificação por e-mail
 app.post('/api/send-code', (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) {
     return res.status(400).json({ erro: 'Email e código são obrigatórios' });
   }
-  // Se não houver transportador configurado, apenas registra no console
-  if (!mailTransporter) {
-    console.log(`Código de verificação para ${email}: ${code}`);
-    return res.json({ mensagem: 'Código registrado no log (modo desenvolvimento)' });
-  }
+
   const mailOptions = {
-    from: process.env.MAIL_USER,
+    from: 'projetorevitalize2025@gmail.com',
     to: email,
     subject: 'Seu código de verificação Revitalize',
     text: `Olá! Seu código de verificação é: ${code}`,
   };
+
   mailTransporter.sendMail(mailOptions, (err, info) => {
     if (err) {
       console.error('Erro ao enviar e-mail:', err);
@@ -99,17 +88,73 @@ app.post('/api/send-code', (req, res) => {
   });
 });
 
+// Armazena códigos de recuperação temporários em memória (pode ser em banco se quiser)
+const recoveryCodes = {};
+
+// Rota para enviar código de recuperação
+app.post('/api/request-password-reset', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ erro: 'Email é obrigatório' });
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  recoveryCodes[email] = code;
+
+  const mailOptions = {
+    from: 'projetorevitalize2025@gmail.com',
+    to: email,
+    subject: 'Recuperação de senha - Revitalize',
+    text: `Seu código de recuperação é: ${code}`,
+  };
+
+  mailTransporter.sendMail(mailOptions, (err) => {
+    if (err) {
+      console.error('Erro ao enviar e-mail:', err);
+      return res.status(500).json({ erro: 'Falha ao enviar e-mail' });
+    }
+    console.log(`Código enviado para ${email}: ${code}`); 
+    return res.json({ mensagem: 'Código enviado com sucesso!' });
+  });
+});
+
+
+// Rota para confirmar código e atualizar senha
+app.post('/api/reset-password', (req, res) => {
+  const { email, code, novaSenha } = req.body;
+  if (!email || !code || !novaSenha) {
+    return res.status(400).json({ erro: 'Dados incompletos' });
+  }
+
+  if (recoveryCodes[email] !== code) {
+    return res.status(400).json({ erro: 'Código inválido' });
+  }
+
+  // remove código usado
+  delete recoveryCodes[email];
+
+  // atualiza senha no banco
+  bcrypt.hash(novaSenha, 10, (errHash, hash) => {
+    if (errHash) return res.status(500).json({ erro: errHash.message });
+    db.run(
+      'UPDATE usuarios SET senha_hash = ? WHERE email = ?',
+      [hash, email],
+      function (err) {
+        if (err) return res.status(500).json({ erro: err.message });
+        if (this.changes === 0) return res.status(404).json({ erro: 'Usuário não encontrado' });
+        return res.json({ mensagem: 'Senha atualizada com sucesso' });
+      }
+    );
+  });
+});
+
 // Rota de cadastro
 app.post('/api/register', (req, res) => {
   const { nome, idade, sexo, email, senha } = req.body;
   if (!nome || !idade || !sexo || !email || !senha) {
     return res.status(400).json({ erro: 'Dados incompletos' });
   }
-  // Verifica se já existe e-mail cadastrado
   db.get('SELECT id FROM usuarios WHERE email = ?', [email], (err, row) => {
     if (err) return res.status(500).json({ erro: err.message });
     if (row) return res.status(409).json({ erro: 'E-mail já cadastrado' });
-    // Gera hash da senha e insere usuário
     bcrypt.hash(senha, 10, (errHash, hash) => {
       if (errHash) return res.status(500).json({ erro: errHash.message });
       db.run(
