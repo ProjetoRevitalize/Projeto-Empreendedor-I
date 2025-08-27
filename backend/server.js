@@ -60,8 +60,8 @@ db.serialize(() => {
 const mailTransporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'projetorevitalize2025@gmail.com', // seu e-mail
-    pass: 'tqpp dzui qfnl gboe', // senha de aplicativo do Gmail
+    user: 'projetorevitalize2025@gmail.com',  // seu e-mail
+    pass: 'tqpp dzui qfnl gboe',              // senha de aplicativo do Gmail
   },
 });
 
@@ -88,7 +88,7 @@ app.post('/api/send-code', (req, res) => {
   });
 });
 
-// Armazena códigos de recuperação temporários em memória (pode ser em banco se quiser)
+// Armazena códigos de recuperação temporários em memória
 const recoveryCodes = {};
 
 // Rota para enviar código de recuperação
@@ -117,35 +117,50 @@ app.post('/api/request-password-reset', (req, res) => {
   });
 });
 
-// Rota para confirmar código e atualizar senha
-app.post('/api/reset-password', (req, res) => {
+// Rota de reset de senha corrigida
+app.post('/api/reset-password', async (req, res) => {
   const { email, code, novaSenha } = req.body;
+
   if (!email || !code || !novaSenha) {
-    return res.status(400).json({ erro: 'Dados incompletos' });
+    return res.status(400).json({ erro: 'Campos incompletos' });
   }
 
-  if (recoveryCodes[email] !== code) {
+  // Verifica se o código fornecido é válido
+  if (code !== recoveryCodes[email]) {
     return res.status(400).json({ erro: 'Código inválido' });
   }
 
-  // remove código usado
-  delete recoveryCodes[email];
+  console.log("E-mail recebido:", email);
 
-  // atualiza senha no banco
-  bcrypt.hash(novaSenha, 10, (errHash, hash) => {
-    if (errHash) return res.status(500).json({ erro: errHash.message });
-    db.run(
-      'UPDATE usuarios SET senha_hash = ? WHERE email = ?',
-      [hash, email],
-      function (err) {
-        if (err) return res.status(500).json({ erro: err.message });
-        if (this.changes === 0) return res.status(404).json({ erro: 'Usuário não encontrado' });
-        return res.json({ mensagem: 'Senha atualizada com sucesso' });
+  // Verifica se o usuário existe na tabela "usuarios"
+  const sqlCheckUser = `SELECT * FROM usuarios WHERE email = ?`;
+  db.get(sqlCheckUser, [email], (err, row) => {
+    if (err) {
+      console.error("Erro ao verificar o usuário:", err);
+      return res.status(500).json({ erro: 'Erro ao verificar usuário' });
+    }
+
+    console.log("Resultado da busca no banco:", row);
+
+    if (!row) {
+      console.log("Usuário não encontrado:", email);
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+    // Se o usuário existir, atualizar a senha
+    const hashed = bcrypt.hashSync(novaSenha, 10);
+
+    const sqlUpdatePassword = `UPDATE usuarios SET senha_hash = ? WHERE email = ?`;
+    db.run(sqlUpdatePassword, [hashed, email], function (err) {
+      if (err) {
+        return res.status(500).json({ erro: 'Erro ao alterar senha' });
       }
-    );
+
+      // Limpa o código após sucesso
+      delete recoveryCodes[email];
+      return res.json({ sucesso: true, mensagem: 'Senha alterada com sucesso' });
+    });
   });
 });
-
 
 // Rota de cadastro
 app.post('/api/register', (req, res) => {
