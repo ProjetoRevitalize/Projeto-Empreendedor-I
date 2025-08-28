@@ -35,6 +35,18 @@
       <p class="link">Não tem conta? <a href="register.html">Cadastrar‑se</a></p>
       <p class="link"><a href="#" id="forgotPasswordLink">Esqueci minha senha?</a></p>
     </form>
+    <!-- Modal de verificação (2FA) -->
+    <div id="twoFactorModal" class="modal">
+      <div class="modal-content">
+        <h3 id="twoFactorTitle">Confirme seu acesso</h3>
+        <p id="twoFactorSubtitle">Insira o código enviado para o seu e-mail:</p>
+        <input type="text" id="twoFactorCode" placeholder="Código de verificação" autocomplete="off" />
+        <p id="twoFactorError" class="error-message"></p>
+        <button id="verifyLoginButton" class="btn primary">Verificar código</button>
+        <button id="verifyRegisgterButton" class="btn">Cancelar</button>
+      </div>
+    </div>
+
     <!-- Modal de recuperação de senha -->
     <div id="resetModal" class="modal">
       <div class="modal-content">

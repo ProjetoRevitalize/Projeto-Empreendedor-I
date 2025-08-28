@@ -516,13 +516,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return res.json();
       })
       .then(() => {
-        alert("Senha alterada com sucesso! Faça login novamente.");
+        alert("Senha alterada com sucesso!");
         resetModal.style.display = 'none'; // Fechar modal
+        // Abrir modal de login para inserir código
+        const twoFactorModal = document.getElementById('twoFactorModal');
+        const twoFactorTitle = document.getElementById('twoFactorTitle');
+        const twoFactorSubtitle = document.getElementById('twoFactorSubtitle');
+        if (twoFactorModal) {
+          twoFactorTitle.textContent = "Verificação de login";
+          twoFactorSubtitle.textContent = "Insira o código enviado para seu e-mail";
+          twoFactorModal.style.display = "flex";
+          document.getElementById('loginEmail').value = resetEmailGlobal;
+        }
       })
-      .catch(err => {
-        errorEl.textContent = err.message; // Mostrar erro real vindo do backend
-        console.error(" Erro no reset:", err.message);
-      });
+
   });
 
 
