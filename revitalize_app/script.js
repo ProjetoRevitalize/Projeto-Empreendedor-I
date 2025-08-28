@@ -465,25 +465,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===== Etapa 2: Verificar código =====
-  resetCodeBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const code = document.getElementById('resetCode').value.trim();
-    resetErrorCode.textContent = '';
+  const resetCodeBtn = document.getElementById('resetCodeBtn');
+  const resetErrorCode = document.getElementById('resetErrorCode');
+  const resetStepCode = document.getElementById('resetStepCode');
+  const resetStepPassword = document.getElementById('resetStepPassword');
 
-    if (!code) {
-      resetErrorCode.textContent = 'Preencha todos os campos.';
-      return;
-    }
+  if (resetCodeBtn && resetErrorCode && resetStepCode && resetStepPassword) {
+    resetCodeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const code = document.getElementById('resetCode').value.trim();
+      resetErrorCode.textContent = '';
 
-    // Simulação de verificação do código (substituir pela chamada API)
-    console.log('Código digitado:', code);
-    // Se código correto, avança para etapa da nova senha
-    resetStepCode.style.display = 'none';
-    resetStepPassword.style.display = 'block';
-  });
+      if (!code) {
+        resetErrorCode.textContent = 'Preencha todos os campos.';
+        return;
+      }
 
+      // Simulação de verificação do código (substituir pela chamada API)
+      console.log('Código digitado:', code);
 
-
+      // Se código correto, avança para etapa da nova senha
+      resetStepCode.style.display = 'none';
+      resetStepPassword.style.display = 'block';
+    });
+  }
 
 
   // Etapa 3: Alterar senha
@@ -536,14 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-
-
-
-
-
-
-
 
   /* Funções auxiliares para planos de treino */
   function getPlans() {
