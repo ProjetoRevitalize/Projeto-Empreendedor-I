@@ -429,11 +429,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Etapa 1: Solicitar código
-  document.addEventListener('DOMContentLoaded', () => {
-    const resetRequestBtn = document.getElementById('resetRequestBtn');
-    if (!resetRequestBtn) return; // se não existe, não faz nada
-
-    resetRequestBtn.addEventListener('click', () => {
+  const resetRequestBtn = document.getElementById('resetRequestBtn');
+  if (resetRequestBtn) {
+    resetRequestBtn.addEventListener('click', async () => {
       const email = document.getElementById('resetEmail').value.trim();
       const errorEl = document.getElementById('resetError');
       errorEl.textContent = '';
@@ -442,113 +440,97 @@ document.addEventListener('DOMContentLoaded', () => {
         errorEl.textContent = 'Informe seu e-mail.';
         return;
       }
-    })
 
-
-    fetch("http://localhost:3000/api/request-password-reset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    })
-      .then(res => {
-        if (!res.ok) return res.json().then(err => { throw new Error(err.erro || "Erro ao solicitar recuperação."); });
-        return res.json();
-      })
-      .then(() => {
+      try {
+        const response = await fetch("http://localhost:3000/api/request-password-reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.erro || "Erro ao solicitar recuperação.");
+        }
+        const data = await response.json();
         resetEmailGlobal = email;
-        console.log("📧 E-mail salvo para reset:", resetEmailGlobal);
+        resetCodeGlobal = data.code; // Assumindo que o backend retorna { code: '1234' }
+        console.log("📧 E-mail salvo:", resetEmailGlobal, "Código:", resetCodeGlobal);
+
         document.getElementById('resetStepEmail').style.display = 'none';
         document.getElementById('resetStepCode').style.display = 'block';
-      })
-      .catch(err => {
+      } catch (err) {
         errorEl.textContent = err.message;
-      });
-  });
+      }
+    });
+  }
 
   // Etapa 2: Validar código
-  document.addEventListener('DOMContentLoaded', () => {
-    // Botão de solicitar código
-    const resetRequestBtn = document.getElementById('resetRequestBtn');
-    if (resetRequestBtn) {
-      resetRequestBtn.addEventListener('click', () => {
-        const email = document.getElementById('resetEmail').value.trim();
-        const errorEl = document.getElementById('resetError');
-        errorEl.textContent = '';
+  const resetCodeBtn = document.getElementById('resetCodeBtn');
+  if (resetCodeBtn) {
+    resetCodeBtn.addEventListener('click', () => {
+      const enteredCode = document.getElementById('resetCode').value.trim();
+      const errorEl = document.getElementById('resetErrorCode');
+      errorEl.textContent = '';
 
-        if (!email) {
-          errorEl.textContent = 'Informe seu e-mail.';
-          return;
-        }
-
-      })
-    }
-
-    resetCodeGlobal = code;
-    console.log("🔑 Código salvo para reset:", resetCodeGlobal);
-    document.getElementById('resetStepCode').style.display = 'none';
-    document.getElementById('resetStepPassword').style.display = 'block';
-  });
+      if (enteredCode === resetCodeGlobal) {
+        document.getElementById('resetStepCode').style.display = 'none';
+        document.getElementById('resetStepPassword').style.display = 'block';
+      } else {
+        errorEl.textContent = 'Código inválido. Tente novamente.';
+      }
+    });
+  }
 
   // Etapa 3: Alterar senha
-  document.addEventListener('DOMContentLoaded', () => {
-    const resetChangeBtn = document.getElementById('resetChangeBtn');
-    if (resetChangeBtn) {
-      resetChangeBtn.addEventListener('click', () => {
-        const novaSenha = document.getElementById('resetNewPassword').value;
-        const confirmSenha = document.getElementById('resetConfirmPassword').value;
-        const errorEl = document.getElementById('resetErrorPassword');
-        errorEl.textContent = '';
+  const resetChangeBtn = document.getElementById('resetChangeBtn');
+  if (resetChangeBtn) {
+    resetChangeBtn.addEventListener('click', async () => {
+      const novaSenha = document.getElementById('resetNewPassword').value;
+      const confirmSenha = document.getElementById('resetConfirmPassword').value;
+      const errorEl = document.getElementById('resetErrorPassword');
+      errorEl.textContent = '';
 
-        // 🔹 Validação igual cadastro
-        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
-        if (!regex.test(novaSenha)) {
-          errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
-          return;
-        }
+      const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
+      if (!regex.test(novaSenha)) {
+        errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
+        return;
+      }
 
-        if (novaSenha !== confirmSenha) {
-          errorEl.textContent = 'As senhas não coincidem.';
-          return;
-        }
+      if (novaSenha !== confirmSenha) {
+        errorEl.textContent = 'As senhas não coincidem.';
+        return;
+      }
 
-        console.log("📨 Enviando para reset-password:", {
-          email: resetEmailGlobal,
-          code: resetCodeGlobal,
-          novaSenha: novaSenha
+      try {
+        const response = await fetch("http://localhost:3000/api/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: resetEmailGlobal,
+            code: resetCodeGlobal,
+            novaSenha: novaSenha
+          })
         });
-      })
-    }
 
-    // Envia os dados para o backend para alterar a senha
-    fetch("http://localhost:3000/api/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: resetEmailGlobal,
-        code: resetCodeGlobal,
-        novaSenha: novaSenha
-      })
-    })
-      .then(res => {
-        if (!res.ok) return res.json().then(err => { throw new Error(err.erro || "Erro ao alterar senha."); });
-        return res.json();
-      })
-      .then(() => {
-        alert("Senha alterada com sucesso!");
-        resetModal.style.display = 'none'; // Fechar modal
-        // Abrir modal de login para inserir código
-        const twoFactorModal = document.getElementById('twoFactorModal');
-        const twoFactorTitle = document.getElementById('twoFactorTitle');
-        const twoFactorSubtitle = document.getElementById('twoFactorSubtitle');
-        if (twoFactorModal) {
-          twoFactorTitle.textContent = "Verificação de login";
-          twoFactorSubtitle.textContent = "Insira o código enviado para seu e-mail";
-          twoFactorModal.style.display = "flex";
-          document.getElementById('loginEmail').value = resetEmailGlobal;
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.erro || "Erro ao alterar senha.");
         }
-      })
 
-  });
+        alert("Senha alterada com sucesso!");
+        resetModal.style.display = 'none';
+
+        // Preenche login com email
+        const twoFactorModal = document.getElementById('twoFactorModal');
+        if (twoFactorModal) {
+          document.getElementById('loginEmail').value = resetEmailGlobal;
+          twoFactorModal.style.display = "flex";
+        }
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  }
 
 
 
