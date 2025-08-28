@@ -429,15 +429,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Etapa 1: Solicitar código
-  document.getElementById('resetRequestBtn').addEventListener('click', () => {
-    const email = document.getElementById('resetEmail').value.trim();
-    const errorEl = document.getElementById('resetError');
-    errorEl.textContent = '';
+  document.addEventListener('DOMContentLoaded', () => {
+    const resetRequestBtn = document.getElementById('resetRequestBtn');
+    if (!resetRequestBtn) return; // se não existe, não faz nada
 
-    if (!email) {
-      errorEl.textContent = 'Informe seu e-mail.';
-      return;
-    }
+    resetRequestBtn.addEventListener('click', () => {
+      const email = document.getElementById('resetEmail').value.trim();
+      const errorEl = document.getElementById('resetError');
+      errorEl.textContent = '';
+
+      if (!email) {
+        errorEl.textContent = 'Informe seu e-mail.';
+        return;
+      }
+    })
+
 
     fetch("http://localhost:3000/api/request-password-reset", {
       method: "POST",
@@ -460,14 +466,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Etapa 2: Validar código
-  document.getElementById('resetVerifyBtn').addEventListener('click', () => {
-    const code = document.getElementById('resetCode').value.trim();
-    const errorEl = document.getElementById('resetErrorCode');
-    errorEl.textContent = '';
+  document.addEventListener('DOMContentLoaded', () => {
+    // Botão de solicitar código
+    const resetRequestBtn = document.getElementById('resetRequestBtn');
+    if (resetRequestBtn) {
+      resetRequestBtn.addEventListener('click', () => {
+        const email = document.getElementById('resetEmail').value.trim();
+        const errorEl = document.getElementById('resetError');
+        errorEl.textContent = '';
 
-    if (!code) {
-      errorEl.textContent = 'Digite o código recebido.';
-      return;
+        if (!email) {
+          errorEl.textContent = 'Informe seu e-mail.';
+          return;
+        }
+
+      })
     }
 
     resetCodeGlobal = code;
@@ -477,29 +490,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Etapa 3: Alterar senha
-  document.getElementById('resetChangeBtn').addEventListener('click', () => {
-    const novaSenha = document.getElementById('resetNewPassword').value;
-    const confirmSenha = document.getElementById('resetConfirmPassword').value;
-    const errorEl = document.getElementById('resetErrorPassword');
-    errorEl.textContent = '';
+  document.addEventListener('DOMContentLoaded', () => {
+    const resetChangeBtn = document.getElementById('resetChangeBtn');
+    if (resetChangeBtn) {
+      resetChangeBtn.addEventListener('click', () => {
+        const novaSenha = document.getElementById('resetNewPassword').value;
+        const confirmSenha = document.getElementById('resetConfirmPassword').value;
+        const errorEl = document.getElementById('resetErrorPassword');
+        errorEl.textContent = '';
 
-    // 🔹 Validação igual cadastro
-    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
-    if (!regex.test(novaSenha)) {
-      errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
-      return;
+        // 🔹 Validação igual cadastro
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{6,}$/;
+        if (!regex.test(novaSenha)) {
+          errorEl.textContent = 'Senha deve ter mínimo 6 caracteres, 1 letra maiúscula, 1 número e 1 símbolo.';
+          return;
+        }
+
+        if (novaSenha !== confirmSenha) {
+          errorEl.textContent = 'As senhas não coincidem.';
+          return;
+        }
+
+        console.log("📨 Enviando para reset-password:", {
+          email: resetEmailGlobal,
+          code: resetCodeGlobal,
+          novaSenha: novaSenha
+        });
+      })
     }
-
-    if (novaSenha !== confirmSenha) {
-      errorEl.textContent = 'As senhas não coincidem.';
-      return;
-    }
-
-    console.log("📨 Enviando para reset-password:", {
-      email: resetEmailGlobal,
-      code: resetCodeGlobal,
-      novaSenha: novaSenha
-    });
 
     // Envia os dados para o backend para alterar a senha
     fetch("http://localhost:3000/api/reset-password", {
