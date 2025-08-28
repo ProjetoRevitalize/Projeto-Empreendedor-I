@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Simulação de verificação do código (substituir pela chamada API)
+      // Simulação de verificação do código 
       console.log('Código digitado:', code);
 
       // Se código correto, avança para etapa da nova senha
@@ -489,7 +489,6 @@ document.addEventListener('DOMContentLoaded', () => {
       resetStepPassword.style.display = 'block';
     });
   }
-
 
   // Etapa 3: Alterar senha
   const resetChangeBtn = document.getElementById('resetChangeBtn');
