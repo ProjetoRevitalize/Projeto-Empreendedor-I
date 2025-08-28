@@ -464,22 +464,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Etapa 2: Validar código
-  const resetCodeBtn = document.getElementById('resetCodeBtn');
-  if (resetCodeBtn) {
-    resetCodeBtn.addEventListener('click', () => {
-      const enteredCode = document.getElementById('resetCode').value.trim();
-      const errorEl = document.getElementById('resetErrorCode');
-      errorEl.textContent = '';
+  // ===== Etapa 2: Verificar código =====
+  resetCodeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const code = document.getElementById('resetCode').value.trim();
+    resetErrorCode.textContent = '';
 
-      if (enteredCode === resetCodeGlobal) {
-        document.getElementById('resetStepCode').style.display = 'none';
-        document.getElementById('resetStepPassword').style.display = 'block';
-      } else {
-        errorEl.textContent = 'Código inválido. Tente novamente.';
-      }
-    });
-  }
+    if (!code) {
+      resetErrorCode.textContent = 'Preencha todos os campos.';
+      return;
+    }
+
+    // Simulação de verificação do código (substituir pela chamada API)
+    console.log('Código digitado:', code);
+    // Se código correto, avança para etapa da nova senha
+    resetStepCode.style.display = 'none';
+    resetStepPassword.style.display = 'block';
+  });
+
+
+
+
 
   // Etapa 3: Alterar senha
   const resetChangeBtn = document.getElementById('resetChangeBtn');
