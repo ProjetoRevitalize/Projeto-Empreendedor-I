@@ -184,74 +184,21 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Verificação do código de autenticação de dois fatores */
   const verifyRegisgterButton = document.getElementById('verifyRegisgterButton');
   if (verifyRegisgterButton) {
+    // O botão com id "verifyRegisgterButton" está rotulado como "Cancelar" no modal de 2FA.
+    // Em vez de verificar o código, ele simplesmente cancela a operação de 2FA:
     verifyRegisgterButton.addEventListener('click', () => {
-      const enteredCode = document.getElementById('twoFactorCode').value.trim();
-      const storedCode = sessionStorage.getItem('twoFactorCode');
+      // Remove qualquer código de verificação pendente
+      sessionStorage.removeItem('twoFactorCode');
+      // Limpa estados de verificação
+      verificationMode = null;
+      pendingRegistrationUser = null;
+      // Limpa mensagens de erro se houver
       const errorEl = document.getElementById('twoFactorError');
-      if (!storedCode) {
-        errorEl.textContent = 'Erro interno. Por favor, faça login novamente.';
-        return;
-      }
-      if (enteredCode === storedCode) {
-        sessionStorage.removeItem('twoFactorCode');
-        errorEl.textContent = '';
-        if (verificationMode === 'register') {
-          // Finaliza cadastro após confirmação do código
-          const userObj = pendingRegistrationUser;
-          pendingRegistrationUser = null;
-          verificationMode = null;
-          if (!userObj) {
-            errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
-            return;
-          }
-          if (USE_API) {
-            apiRegisterUser(userObj)
-              .then(() => {
-                alert('Cadastro confirmado com sucesso! Faça login para continuar.');
-                const modal = document.getElementById('twoFactorModal');
-                if (modal) modal.style.display = 'none';
-                window.location.href = 'index.html';
-              })
-              .catch((err) => {
-                errorEl.textContent = err.message;
-              });
-          } else {
-            // Salva em localStorage
-            const users = getUsers();
-            users.push({
-              name: userObj.nome,
-              age: userObj.idade,
-              gender: userObj.sexo,
-              email: userObj.email,
-              password: userObj.senha,
-            });
-            saveUsers(users);
-            alert('Cadastro confirmado com sucesso! Faça login para continuar.');
-            const modal = document.getElementById('twoFactorModal');
-            if (modal) modal.style.display = 'none';
-            window.location.href = 'index.html';
-          }
-        } else {
-          // Fluxo de login
-          if (!USE_API) {
-            const emailField = document.getElementById('loginEmail');
-            const emailVal = emailField ? emailField.value.trim() : null;
-            if (emailVal) {
-              const users = getUsers();
-              const u = users.find((usr) => usr.email.toLowerCase() === emailVal.toLowerCase());
-              if (u) sessionStorage.setItem('currentUser', JSON.stringify(u));
-            }
-          }
-          // Fecha o modal de 2FA e redireciona à home
-          const modal = document.getElementById('twoFactorModal');
-          if (modal) {
-            modal.style.display = 'none';
-          }
-          window.location.href = 'home.html';
-        }
-      } else {
-        errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
-      }
+      if (errorEl) errorEl.textContent = '';
+      // Fecha o modal de verificação
+      const modal = document.getElementById('twoFactorModal');
+      if (modal) modal.style.display = 'none';
+      // O usuário permanece na página atual (pode tentar login novamente)
     });
   }
 
@@ -441,25 +388,53 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      try {
-        const response = await fetch("http://localhost:3000/api/request-password-reset", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
-        });
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.erro || "Erro ao solicitar recuperação.");
+      if (USE_API) {
+        // Modo API: solicita ao backend o envio do código de recuperação
+        try {
+          const response = await fetch("http://localhost:3000/api/request-password-reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+          });
+          if (!response.ok) {
+            // tenta extrair mensagem de erro do backend
+            let errMsg = 'Erro ao solicitar recuperação.';
+            try {
+              const err = await response.json();
+              if (err && err.erro) errMsg = err.erro;
+            } catch (e) {
+              // ignora
+            }
+            throw new Error(errMsg);
+          }
+          // Armazena apenas o e‑mail. O código será digitado pelo usuário na próxima etapa.
+          resetEmailGlobal = email;
+          resetCodeGlobal = null;
+          console.log("📧 E-mail salvo:", resetEmailGlobal, "Código enviado por e-mail");
+          // Avança para etapa de inserção de código
+          document.getElementById('resetStepEmail').style.display = 'none';
+          document.getElementById('resetStepCode').style.display = 'block';
+        } catch (err) {
+          errorEl.textContent = err.message;
         }
-        const data = await response.json();
+      } else {
+        // Modo local: verifica se o usuário existe no armazenamento local
+        const users = getUsers();
+        const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+        if (!user) {
+          errorEl.textContent = 'Usuário não encontrado.';
+          return;
+        }
+        // Gera um código de recuperação de 6 dígitos
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         resetEmailGlobal = email;
-        resetCodeGlobal = data.code; // Assumindo que o backend retorna { code: '1234' }
-        console.log("📧 E-mail salvo:", resetEmailGlobal, "Código:", resetCodeGlobal);
-
+        resetCodeGlobal = code; // guarda código gerado para verificação
+        // Exibe o código em um alerta para simular envio por e-mail
+        alert('Código de recuperação (modo local): ' + code);
+        console.log("📧 E-mail salvo:", resetEmailGlobal, "Código gerado:", resetCodeGlobal);
+        // Avança para etapa de inserção de código
         document.getElementById('resetStepEmail').style.display = 'none';
         document.getElementById('resetStepCode').style.display = 'block';
-      } catch (err) {
-        errorEl.textContent = err.message;
       }
     });
   }
@@ -481,10 +456,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Simulação de verificação do código 
+      // Verificação do código
       console.log('Código digitado:', code);
-
-      // Se código correto, avança para etapa da nova senha
+      if (USE_API) {
+        // Em modo API, armazenamos o código digitado para enviá-lo ao backend
+        resetCodeGlobal = code;
+        // Não validamos aqui; o backend fará a verificação
+      } else {
+        // Em modo local, comparamos com o código gerado anteriormente
+        if (code !== resetCodeGlobal) {
+          resetErrorCode.textContent = 'Código inválido.';
+          return;
+        }
+      }
+      // Avança para etapa de nova senha
       resetStepCode.style.display = 'none';
       resetStepPassword.style.display = 'block';
     });
@@ -510,33 +495,54 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      try {
-        const response = await fetch("http://localhost:3000/api/reset-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: resetEmailGlobal,
-            code: resetCodeGlobal,
-            novaSenha: novaSenha
-          })
-        });
-
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.erro || "Erro ao alterar senha.");
+      if (USE_API) {
+        // Modo API: envia requisição ao backend
+        try {
+          const response = await fetch("http://localhost:3000/api/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: resetEmailGlobal,
+              code: resetCodeGlobal,
+              novaSenha: novaSenha
+            })
+          });
+          if (!response.ok) {
+            let errMsg = 'Erro ao alterar senha.';
+            try {
+              const err = await response.json();
+              if (err && err.erro) errMsg = err.erro;
+            } catch (e) {
+              // ignora
+            }
+            throw new Error(errMsg);
+          }
+          alert("Senha alterada com sucesso!");
+          // Fecha o modal de recuperação
+          resetModal.style.display = 'none';
+          // Redireciona automaticamente para a tela de login para que o usuário possa
+          // autenticar com a nova senha
+          window.location.href = 'index.html';
+        } catch (err) {
+          errorEl.textContent = err.message;
         }
-
+      } else {
+        // Modo local: atualiza a senha no armazenamento local
+        const users = getUsers();
+        const idx = users.findIndex((u) => u.email.toLowerCase() === resetEmailGlobal.toLowerCase());
+        if (idx === -1) {
+          errorEl.textContent = 'Usuário não encontrado.';
+          return;
+        }
+        // Atualiza a senha em claro no objeto e salva. Para armazenamento local,
+        // o objeto do usuário utiliza a propriedade "password", conforme definido no cadastro.
+        users[idx].password = novaSenha;
+        saveUsers(users);
         alert("Senha alterada com sucesso!");
+        // Fecha o modal de recuperação
         resetModal.style.display = 'none';
-
-        // Preenche login com email
-        const twoFactorModal = document.getElementById('twoFactorModal');
-        if (twoFactorModal) {
-          document.getElementById('loginEmail').value = resetEmailGlobal;
-          twoFactorModal.style.display = "flex";
-        }
-      } catch (err) {
-        errorEl.textContent = err.message;
+        // Redireciona para a tela de login para que o usuário possa autenticar
+        window.location.href = 'index.html';
       }
     });
   }
