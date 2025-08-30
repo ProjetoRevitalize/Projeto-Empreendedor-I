@@ -181,25 +181,81 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* Verificação do código de autenticação de dois fatores */
+  /* Verificação do código de autenticação de dois fatores ou cancelamento */
   const verifyRegisgterButton = document.getElementById('verifyRegisgterButton');
   if (verifyRegisgterButton) {
-    // O botão com id "verifyRegisgterButton" está rotulado como "Cancelar" no modal de 2FA.
-    // Em vez de verificar o código, ele simplesmente cancela a operação de 2FA:
-    verifyRegisgterButton.addEventListener('click', () => {
-      // Remove qualquer código de verificação pendente
-      sessionStorage.removeItem('twoFactorCode');
-      // Limpa estados de verificação
-      verificationMode = null;
-      pendingRegistrationUser = null;
-      // Limpa mensagens de erro se houver
-      const errorEl = document.getElementById('twoFactorError');
-      if (errorEl) errorEl.textContent = '';
-      // Fecha o modal de verificação
-      const modal = document.getElementById('twoFactorModal');
-      if (modal) modal.style.display = 'none';
-      // O usuário permanece na página atual (pode tentar login novamente)
-    });
+    // Se estivermos na página de cadastro (registerForm existe), este botão serve para
+    // confirmar o código e finalizar o cadastro. Caso contrário (página de login),
+    // ele atua como botão de cancelar.
+    if (document.getElementById('registerForm')) {
+      // Página de cadastro: verifica o código e conclui o registro
+      verifyRegisgterButton.addEventListener('click', () => {
+        const enteredCode = document.getElementById('twoFactorCode').value.trim();
+        const storedCode = sessionStorage.getItem('twoFactorCode');
+        const errorEl = document.getElementById('twoFactorError');
+        if (!storedCode) {
+          if (errorEl) errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
+          return;
+        }
+        if (enteredCode === storedCode) {
+          // Código correto para cadastro
+          sessionStorage.removeItem('twoFactorCode');
+          if (errorEl) errorEl.textContent = '';
+          const userObj = pendingRegistrationUser;
+          pendingRegistrationUser = null;
+          verificationMode = null;
+          if (!userObj) {
+            if (errorEl) errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
+            return;
+          }
+          if (USE_API) {
+            apiRegisterUser(userObj)
+              .then(() => {
+                alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+                const modal = document.getElementById('twoFactorModal');
+                if (modal) modal.style.display = 'none';
+                window.location.href = 'index.html';
+              })
+              .catch((err) => {
+                if (errorEl) errorEl.textContent = err.message;
+              });
+          } else {
+            // Salva em localStorage
+            const users = getUsers();
+            users.push({
+              name: userObj.nome,
+              age: userObj.idade,
+              gender: userObj.sexo,
+              email: userObj.email,
+              password: userObj.senha,
+            });
+            saveUsers(users);
+            alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+            const modal = document.getElementById('twoFactorModal');
+            if (modal) modal.style.display = 'none';
+            window.location.href = 'index.html';
+          }
+        } else {
+          // Código incorreto
+          if (errorEl) errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
+        }
+      });
+    } else {
+      // Página de login: usa este botão como cancelar
+      verifyRegisgterButton.addEventListener('click', () => {
+        // Remove qualquer código de verificação pendente
+        sessionStorage.removeItem('twoFactorCode');
+        // Limpa estados de verificação
+        verificationMode = null;
+        pendingRegistrationUser = null;
+        // Limpa mensagens de erro se houver
+        const errorEl = document.getElementById('twoFactorError');
+        if (errorEl) errorEl.textContent = '';
+        // Fecha o modal de verificação
+        const modal = document.getElementById('twoFactorModal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
   }
 
 
