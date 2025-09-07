@@ -1,4 +1,4 @@
-/*-------------------Unidade 1-------------------*/
+/*-------------------Unidade 3-------------------*/
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -181,37 +181,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* Verificação do código de autenticação de dois fatores ou cancelamento */
+  /* Verificação do código de autenticação de dois fatores */
   const verifyRegisgterButton = document.getElementById('verifyRegisgterButton');
   if (verifyRegisgterButton) {
-    // Se estivermos na página de cadastro (registerForm existe), este botão serve para
-    // confirmar o código e finalizar o cadastro. Caso contrário (página de login),
-    // ele atua como botão de cancelar.
-    if (document.getElementById('registerForm')) {
-      // Página de cadastro: verifica o código e conclui o registro
-      verifyRegisgterButton.addEventListener('click', () => {
-        const enteredCode = document.getElementById('twoFactorCode').value.trim();
-        const storedCode = sessionStorage.getItem('twoFactorCode');
-        const errorEl = document.getElementById('twoFactorError');
+    verifyRegisgterButton.addEventListener('click', () => {
+      // Se estivermos no fluxo de cadastro (verificationMode === 'register'), valida o código e conclui o cadastro.
+      const enteredCode = document.getElementById('twoFactorCode').value.trim();
+      const storedCode = sessionStorage.getItem('twoFactorCode');
+      const errorEl = document.getElementById('twoFactorError');
+      // Verifica se há um código salvo
+      if (verificationMode === 'register' && pendingRegistrationUser) {
         if (!storedCode) {
           if (errorEl) errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
           return;
         }
         if (enteredCode === storedCode) {
-          // Código correto para cadastro
+          // Código correto: conclui cadastro
           sessionStorage.removeItem('twoFactorCode');
-          if (errorEl) errorEl.textContent = '';
           const userObj = pendingRegistrationUser;
           pendingRegistrationUser = null;
           verificationMode = null;
-          if (!userObj) {
-            if (errorEl) errorEl.textContent = 'Erro interno. Por favor, tente novamente.';
-            return;
-          }
           if (USE_API) {
             apiRegisterUser(userObj)
               .then(() => {
                 alert('Cadastro confirmado com sucesso! Faça login para continuar.');
+                // Fecha o modal e redireciona para a tela de login
                 const modal = document.getElementById('twoFactorModal');
                 if (modal) modal.style.display = 'none';
                 window.location.href = 'index.html';
@@ -220,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (errorEl) errorEl.textContent = err.message;
               });
           } else {
-            // Salva em localStorage
+            // Salva em localStorage usando propriedades consistentes com o login
             const users = getUsers();
             users.push({
               name: userObj.nome,
@@ -236,26 +230,19 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
           }
         } else {
-          // Código incorreto
           if (errorEl) errorEl.textContent = 'Código inválido. Por favor, tente novamente.';
         }
-      });
-    } else {
-      // Página de login: usa este botão como cancelar
-      verifyRegisgterButton.addEventListener('click', () => {
-        // Remove qualquer código de verificação pendente
+      } else {
+        // Caso contrário, atua como "Cancelar": limpa estados e fecha o modal
         sessionStorage.removeItem('twoFactorCode');
-        // Limpa estados de verificação
         verificationMode = null;
         pendingRegistrationUser = null;
-        // Limpa mensagens de erro se houver
-        const errorEl = document.getElementById('twoFactorError');
         if (errorEl) errorEl.textContent = '';
-        // Fecha o modal de verificação
         const modal = document.getElementById('twoFactorModal');
         if (modal) modal.style.display = 'none';
-      });
-    }
+        // O usuário permanece na página atual
+      }
+    });
   }
 
 
@@ -674,6 +661,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ====================
+     REQUISITO FUNCIONAL 3 – CRIAÇÃO DO PLANO DE TREINO
+     Esta seção corresponde à página plan.html. Nela são coletados altura, peso e objetivo do usuário,
+     validados e utilizados para gerar automaticamente um plano de treino padrão com três treinos (A, B, C).
+     O plano criado é armazenado em localStorage e o usuário é direcionado para a tela de ajustes.
+  ==================== */
   /* Página Criar Plano */
   if (document.body.classList.contains('plan')) {
     const backBtn = document.getElementById('backHomeFromPlan');
@@ -700,15 +693,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const pesoInput = document.getElementById('peso');
+    // Ajusta o comprimento máximo do campo de peso para permitir valores com vírgula (ex.: 88,60)
+    if (pesoInput) {
+      pesoInput.setAttribute('maxlength', '6');
+    }
     pesoInput.addEventListener('input', (e) => {
       let val = e.target.value;
-      // só permite números
-      val = val.replace(/\D/g, '');
-      // máximo 3 dígitos
-      if (val.length > 3) {
-        val = val.slice(0, 3);
+      // Permite apenas dígitos e uma vírgula
+      val = val.replace(/[^0-9,]/g, '');
+      // Garante no máximo uma vírgula
+      const parts = val.split(',');
+      if (parts.length > 2) {
+        val = parts[0] + ',' + parts.slice(1).join('');
       }
-      e.target.value = val;
+      // Limita a parte inteira a 3 dígitos e a parte decimal a 2 dígitos
+      const [intPart, decPart] = val.split(',');
+      let newVal = intPart ? intPart.slice(0, 3) : '';
+      if (decPart !== undefined) {
+        newVal += ',' + decPart.slice(0, 2);
+      }
+      e.target.value = newVal;
     });
 
     const planForm = document.getElementById('planForm');
@@ -724,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorEl.textContent = '';
 
         const alturaNum = parseFloat(alturaVal.replace(',', '.'));
-        const pesoNum = parseFloat(pesoVal);
+        const pesoNum = parseFloat(pesoVal.replace(',', '.'));
 
         if (!alturaVal || isNaN(alturaNum) || alturaNum <= 0) {
           errorEl.textContent = 'Informe uma altura válida (em metros).';
@@ -743,8 +747,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const plans = getPlans();
         const newPlan = {
           id: Date.now(),
-          height: parseFloat(alturaVal),
-          weight: parseFloat(pesoVal),
+          // Armazena altura e peso como números convertendo vírgula para ponto
+          height: alturaNum,
+          weight: pesoNum,
           objective: objetivoVal,
           trainings: [
             {
@@ -786,12 +791,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ====================
+     Fim da criação de plano (RF3)
+  ==================== */
+
+  /* ====================
+     REQUISITO FUNCIONAL 4 – AJUSTES DO PLANO DE TREINO
+     Esta seção corresponde à página adjust.html. Permite listar, editar e deletar planos existentes.
+     Ao editar um plano, o usuário pode ajustar métricas e exercícios; a versão anterior é armazenada
+     no histórico do plano para possível reversão.
+  ==================== */
   /* Página Ajustar Plano */
   if (document.body.classList.contains('adjust')) {
     const backBtn = document.getElementById('backHomeFromAdjust');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        window.location.href = "home.html";
+        // Volta para a página anterior usando histórico do navegador
+        window.history.back();
       });
     }
     const planListEl = document.getElementById('planList');
@@ -844,8 +860,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const plan = plans.find((p) => p.id == planId);
       if (!plan || !planDetailsEl) return;
       // Preenche campos
-      document.getElementById('adjustAltura').value = plan.height;
-      document.getElementById('adjustPeso').value = plan.weight;
+      // Usa os valores numéricos do plano diretamente; se houver casas decimais, serão exibidas (e.g., 1.7)
+      document.getElementById('adjustAltura').value = plan.height !== undefined ? plan.height : '';
+      document.getElementById('adjustPeso').value = plan.weight !== undefined ? plan.weight : '';
       document.getElementById('adjustObjetivo').value = plan.objective;
       planNameTitle.textContent = `Plano (${plan.objective})`;
       // Renderiza treinos
@@ -865,16 +882,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ul.classList.add('exercise-list');
         training.exercises.forEach((exercise, eIndex) => {
           const li = document.createElement('li');
-          const nameSpan = document.createElement('span');
-          nameSpan.textContent = exercise.name;
+          // Campo de nome do exercício (editável)
+          const exerciseNameInput = document.createElement('input');
+          exerciseNameInput.type = 'text';
+          exerciseNameInput.value = exercise.name;
+          exerciseNameInput.classList.add('exercise-name');
+          exerciseNameInput.dataset.tIndex = tIndex;
+          exerciseNameInput.dataset.eIndex = eIndex;
+          exerciseNameInput.style.width = '140px';
+          // Campo de valor do exercício (editável)
           const valueInput = document.createElement('input');
           valueInput.type = 'text';
           valueInput.value = exercise.value;
+          valueInput.classList.add('exercise-value');
           valueInput.dataset.tIndex = tIndex;
           valueInput.dataset.eIndex = eIndex;
           valueInput.style.marginLeft = '0.5rem';
           valueInput.style.width = '80px';
-          li.appendChild(nameSpan);
+          li.appendChild(exerciseNameInput);
           li.appendChild(valueInput);
           ul.appendChild(li);
         });
@@ -925,9 +950,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Salva a versão atual no histórico antes de modificar
         const planCopy = JSON.parse(JSON.stringify(plan));
         plan.history.push(planCopy);
-        // Atualiza métricas
-        plan.height = parseFloat(document.getElementById('adjustAltura').value);
-        plan.weight = parseFloat(document.getElementById('adjustPeso').value);
+        // Atualiza métricas (converte vírgula para ponto caso o usuário tenha inserido com vírgula)
+        plan.height = parseFloat(document.getElementById('adjustAltura').value.toString().replace(',', '.'));
+        plan.weight = parseFloat(document.getElementById('adjustPeso').value.toString().replace(',', '.'));
         plan.objective = document.getElementById('adjustObjetivo').value;
         // Atualiza treinos
         // Percorre inputs de nomes de treinos
@@ -936,13 +961,20 @@ document.addEventListener('DOMContentLoaded', () => {
           const tIndex = parseInt(input.dataset.tIndex);
           plan.trainings[tIndex].name = input.value || plan.trainings[tIndex].name;
         });
-        // Atualiza valores dos exercícios
-        // Seleciona os inputs de exercícios usando o atributo data-e-index (gerado via dataset.eIndex)
-        const exerciseInputs = trainingsContainer.querySelectorAll('input[data-e-index]');
-        exerciseInputs.forEach((input) => {
+        // Atualiza nomes e valores dos exercícios
+        const exerciseNameInputs = trainingsContainer.querySelectorAll('.exercise-name');
+        exerciseNameInputs.forEach((input) => {
           const tIndex = parseInt(input.dataset.tIndex);
           const eIndex = parseInt(input.dataset.eIndex);
-          plan.trainings[tIndex].exercises[eIndex].value = input.value || plan.trainings[tIndex].exercises[eIndex].value;
+          plan.trainings[tIndex].exercises[eIndex].name =
+            input.value || plan.trainings[tIndex].exercises[eIndex].name;
+        });
+        const exerciseValueInputs = trainingsContainer.querySelectorAll('.exercise-value');
+        exerciseValueInputs.forEach((input) => {
+          const tIndex = parseInt(input.dataset.tIndex);
+          const eIndex = parseInt(input.dataset.eIndex);
+          plan.trainings[tIndex].exercises[eIndex].value =
+            input.value || plan.trainings[tIndex].exercises[eIndex].value;
         });
         // Salva de volta
         plans[planIndex] = plan;
