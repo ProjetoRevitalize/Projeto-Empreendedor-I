@@ -1,4 +1,4 @@
-/*-------------------Unidade 3-------------------*/
+/*-------------------Unidade 4-------------------*/
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -616,6 +616,625 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('revitalizeImcHistory', JSON.stringify(history));
   }
 
+  /* =============================
+     RF3 – MODELOS por Nível/Objetivo
+     Estas estruturas definem sugestões de treinos de acordo com o
+     nível de treino selecionado (Iniciante, Intermediário, Avançado ou Em branco)
+     e o objetivo (Perda de Peso, Ganho de Massa ou Manutenção/Mobilidade).
+     Cada sugestão possui cinco dias e, em cada dia, seis itens: um
+     aquecimento e cinco exercícios. Os exercícios são apenas exemplos
+     genéricos e servem como ponto de partida para o usuário, que pode
+     editá-los posteriormente na tela de ajustes.
+  =============================*/
+
+  // Cria um objeto de exercício a partir de um nome e um valor
+  function ex(name, value = '3x12') {
+    return { name, value };
+  }
+
+  // Gera uma lista padrão de seis exercícios, incluindo um
+  // aquecimento customizável. O valor para as repetições pode ser
+  // modificado depois pelo usuário.
+  function baseSix(aquec = 'Aquecimento') {
+    // Retorna um conjunto padrão de exercícios: aquecimento, cinco exercícios genéricos e um alongamento.
+    return [
+      ex(aquec, ''),
+      ex('Exercício 1'),
+      ex('Exercício 2'),
+      ex('Exercício 3'),
+      ex('Exercício 4'),
+      ex('Exercício 5'),
+      ex('Alongamento', ''),
+    ];
+  }
+
+  // Modelos de treinos sugeridos para cada nível e objetivo. Para simplificar,
+  // apenas alguns exemplos foram detalhados (como o nível Iniciante para
+  // Perda de Peso); os demais reutilizam a estrutura baseSix() para
+  // permitir que o usuário personalize conforme desejar. Se desejar
+  // personalizar mais, adicione os nomes dos dias e aquecimentos
+  // conforme os anexos do projeto.
+  const templates = {
+    'Iniciante': {
+      // Treinos completos extraídos do documento para o nível Iniciante
+      'Perda de Peso': [
+        {
+          name: 'Treino 1 – Peito e Ombro',
+          exercises: [
+            { name: 'Aquecimento', value: '10 min caminhada rápida ou bicicleta' },
+            { name: 'Supino reto com halteres', value: '3x12-15' },
+            { name: 'Supino inclinado com halteres', value: '3x12' },
+            { name: 'Crucifixo máquina (voador)', value: '3x12-15' },
+            { name: 'Elevação lateral com halteres', value: '3x12' },
+            { name: 'Desenvolvimento (ombro) com halteres', value: '3x12' },
+            { name: 'Prancha', value: '3x30s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Aquecimento', value: '10 min esteira inclinada' },
+            { name: 'Agachamento livre sem peso ou com halteres leves', value: '3x15' },
+            { name: 'Leg press', value: '3x12-15' },
+            { name: 'Afundo (avanço)', value: '3x12 cada perna' },
+            { name: 'Cadeira extensora', value: '3x12-15' },
+            { name: 'Mesa flexora', value: '3x12' },
+            { name: 'Panturrilha em pé', value: '3x20' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Aquecimento', value: '5 min corda ou bicicleta' },
+            { name: 'Puxada na polia frente', value: '3x12-15' },
+            { name: 'Remada baixa máquina', value: '3x12' },
+            { name: 'Remada unilateral com halter', value: '3x12 cada braço' },
+            { name: 'Abdominal reto no colchonete', value: '3x20' },
+            { name: 'Abdominal bicicleta', value: '3x20' },
+            { name: 'Prancha lateral', value: '2x20s cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Aquecimento', value: '5 min corda' },
+            { name: 'Rosca direta com halteres', value: '3x12' },
+            { name: 'Rosca alternada', value: '3x12' },
+            { name: 'Rosca martelo', value: '3x12' },
+            { name: 'Tríceps corda no cabo', value: '3x12' },
+            { name: 'Tríceps francês com halter', value: '3x12' },
+            { name: 'Flexão de braço no chão', value: '2x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Corpo todo + Cardio',
+          exercises: [
+            { name: 'Aquecimento', value: '5 min corrida leve' },
+            { name: 'Supino reto halteres', value: '3x12' },
+            { name: 'Agachamento com halteres', value: '3x12' },
+            { name: 'Remada curvada com halteres', value: '3x12' },
+            { name: 'Desenvolvimento militar halteres', value: '3x12' },
+            { name: 'Cardio HIIT: esteira ou bike', value: '8 min (30s rápido / 30s leve)' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Ganho de Massa': [
+        {
+          name: 'Treino 1 – Peito + Ombro',
+          exercises: [
+            { name: 'Supino reto barra', value: '4x8-10' },
+            { name: 'Supino inclinado máquina', value: '4x8-10' },
+            { name: 'Crucifixo inclinado halteres', value: '3x10' },
+            { name: 'Desenvolvimento com halteres', value: '4x8-10' },
+            { name: 'Elevação lateral', value: '4x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Agachamento livre barra', value: '4x8-10' },
+            { name: 'Leg press', value: '4x10' },
+            { name: 'Hack machine', value: '3x10' },
+            { name: 'Cadeira extensora', value: '4x12' },
+            { name: 'Stiff com halteres', value: '4x10' },
+            { name: 'Mesa flexora', value: '3x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Barra fixa (ou puxada no gravitron)', value: '4x até 8-10' },
+            { name: 'Remada curvada barra', value: '4x10' },
+            { name: 'Puxada frente polia', value: '3x10' },
+            { name: 'Remada baixa máquina', value: '3x10' },
+            { name: 'Lombar banco romano', value: '4x10' },
+            { name: 'Abdominal infra banco declinado', value: '4x15' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Rosca direta barra', value: '4x8-10' },
+            { name: 'Rosca inclinada', value: '3x10' },
+            { name: 'Rosca martelo', value: '3x10' },
+            { name: 'Tríceps corda', value: '4x8-10' },
+            { name: 'Tríceps francês', value: '3x10' },
+            { name: 'Paralelas (ou banco)', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Ombro + Panturrilha + Core',
+          exercises: [
+            { name: 'Desenvolvimento militar barra', value: '4x8-10' },
+            { name: 'Elevação lateral polia', value: '4x12' },
+            { name: 'Elevação frontal halteres', value: '3x12' },
+            { name: 'Panturrilha em pé', value: '4x20' },
+            { name: 'Panturrilha sentado', value: '4x20' },
+            { name: 'Prancha', value: '4x30-40s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Manutenção/Mobilidade': [
+        {
+          name: 'Treino 1 – Coluna e Quadril',
+          exercises: [
+            { name: 'Gato-camelo', value: '3x10' },
+            { name: 'Ponte de quadril', value: '3x15' },
+            { name: 'Prancha', value: '3x30s' },
+            { name: 'Alongamento borboleta', value: '3x20s' },
+            { name: 'Rotação de quadril em pé', value: '3x10 cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Ombros e Braços',
+          exercises: [
+            { name: 'Mobilidade de ombro com bastão', value: '3x10' },
+            { name: 'Rotação externa com elástico', value: '3x12' },
+            { name: 'Elevação lateral com elástico', value: '3x12' },
+            { name: 'Alongamento de tríceps acima da cabeça', value: '3x20s' },
+            { name: 'Alongamento de peitoral na parede', value: '3x20s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Pernas',
+          exercises: [
+            { name: 'Agachamento profundo com peso corporal', value: '3x10' },
+            { name: 'Elevação de calcanhar em pé', value: '3x15' },
+            { name: 'Afundo estático', value: '3x10 cada perna' },
+            { name: 'Alongamento posterior da coxa sentado', value: '3x20s' },
+            { name: 'Mobilidade de joelho (circulares)', value: '3x10' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Coluna e Core',
+          exercises: [
+            { name: 'Bird-dog', value: '3x10' },
+            { name: 'Prancha lateral', value: '3x20s cada lado' },
+            { name: 'Alongamento cobra', value: '3x20s' },
+            { name: 'Mobilidade torácica em 4 apoios', value: '3x10' },
+            { name: 'Abdominal hipopressivo', value: '3x30s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Full Body Mobilidade',
+          exercises: [
+            { name: 'Caminhada do urso', value: '3x10 passos' },
+            { name: 'Caminhada do caranguejo', value: '3x10 passos' },
+            { name: 'Mobilidade de ombro com elástico', value: '3x12' },
+            { name: 'Mobilidade de quadril em 4 apoios', value: '3x12' },
+            { name: 'Alongamento global em pé', value: '3x30s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+    },
+    // Treinos completos para o nível Intermediário extraídos do PDF.
+    'Intermediário': {
+      'Perda de Peso': [
+        {
+          name: 'Treino 1 – Peito e Ombro',
+          exercises: [
+            { name: 'Supino reto barra', value: '4x12-15' },
+            { name: 'Supino inclinado halteres', value: '4x12' },
+            { name: 'Crucifixo máquina', value: '3x12-15' },
+            { name: 'Desenvolvimento militar barra', value: '3x12' },
+            { name: 'Elevação lateral + frontal (bi-set)', value: '3x12 cada' },
+            { name: 'Flexão de braço', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Agachamento livre com barra', value: '4x12' },
+            { name: 'Leg press', value: '4x15-12' },
+            { name: 'Afundo caminhando', value: '3x12 cada perna' },
+            { name: 'Cadeira extensora + mesa flexora (bi-set)', value: '3x12-15' },
+            { name: 'Stiff com barra', value: '3x12' },
+            { name: 'Panturrilha em pé', value: '4x20' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Barra fixa (ou gravitron)', value: '4x8-12' },
+            { name: 'Remada curvada barra', value: '4x12' },
+            { name: 'Puxada polia frente', value: '3x12' },
+            { name: 'Remada unilateral halteres', value: '3x12 cada braço' },
+            { name: 'Abdominal infra no banco', value: '3x20' },
+            { name: 'Prancha com elevação de perna', value: '3x40s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Rosca barra W', value: '4x12' },
+            { name: 'Rosca alternada sentado', value: '3x12' },
+            { name: 'Rosca martelo com corda', value: '3x12' },
+            { name: 'Tríceps corda', value: '4x12' },
+            { name: 'Tríceps testa', value: '3x12' },
+            { name: 'Mergulho no banco', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Full Body + Cardio HIIT',
+          exercises: [
+            { name: 'Supino reto halteres', value: '3x12' },
+            { name: 'Agachamento com barra', value: '3x12' },
+            { name: 'Remada baixa máquina', value: '3x12' },
+            { name: 'Desenvolvimento militar', value: '3x12' },
+            { name: 'HIIT esteira/bike', value: '12 min (30s rápido / 15s leve)' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Ganho de Massa': [
+        {
+          name: 'Treino 1 – Peito + Ombro',
+          exercises: [
+            { name: 'Supino reto barra', value: '5x6-8' },
+            { name: 'Supino inclinado halteres', value: '4x8-10' },
+            { name: 'Crucifixo inclinado', value: '3x10' },
+            { name: 'Desenvolvimento com barra', value: '4x8-10' },
+            { name: 'Elevação lateral + frontal (bi-set)', value: '3x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Agachamento livre barra', value: '5x8' },
+            { name: 'Leg press', value: '4x10' },
+            { name: 'Passada andando com halteres', value: '3x12 cada perna' },
+            { name: 'Cadeira extensora', value: '4x12 (drop set última série)' },
+            { name: 'Stiff com barra', value: '4x10' },
+            { name: 'Panturrilha sentado', value: '5x20' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Barra fixa', value: '5x até 8-10' },
+            { name: 'Remada curvada barra', value: '4x8-10' },
+            { name: 'Puxada polia frente', value: '3x10' },
+            { name: 'Remada baixa máquina', value: '3x10' },
+            { name: 'Lombar banco romano com anilha', value: '4x12' },
+            { name: 'Abdominal infra com peso', value: '4x15' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Rosca direta barra', value: '4x8-10' },
+            { name: 'Rosca inclinada halteres', value: '3x10' },
+            { name: 'Rosca concentrada', value: '3x10' },
+            { name: 'Tríceps francês halteres', value: '3x10' },
+            { name: 'Tríceps pulley corda', value: '4x8-10' },
+            { name: 'Paralelas', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Ombro + Core',
+          exercises: [
+            { name: 'Desenvolvimento militar barra', value: '5x8' },
+            { name: 'Elevação lateral', value: '4x12' },
+            { name: 'Elevação frontal polia', value: '3x12' },
+            { name: 'Encolhimento de ombros barra', value: '4x12' },
+            { name: 'Prancha com peso', value: '4x40-60s' },
+            { name: 'Abdominal lateral com anilha', value: '3x15 cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Manutenção/Mobilidade': [
+        {
+          name: 'Treino 1 – Coluna e Quadril',
+          exercises: [
+            { name: 'Gato-camelo', value: '3x12' },
+            { name: 'Ponte de quadril com uma perna', value: '3x12 cada' },
+            { name: 'Prancha dinâmica (movendo braços)', value: '3x30s' },
+            { name: 'Alongamento borboleta + rotação quadril', value: '3x20s' },
+            { name: 'Dead bug (core)', value: '3x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Ombros',
+          exercises: [
+            { name: 'Mobilidade ombro bastão', value: '3x12' },
+            { name: 'Rotação externa com elástico', value: '3x15' },
+            { name: 'Face pull (elástico ou polia)', value: '3x12' },
+            { name: 'Alongamento peitoral parede', value: '3x20s' },
+            { name: 'Alongamento trapézio lateral', value: '3x20s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Pernas e Joelhos',
+          exercises: [
+            { name: 'Agachamento profundo (sumô)', value: '3x10' },
+            { name: 'Mobilidade tornozelo (avanço com joelho)', value: '3x12' },
+            { name: 'Afundo isométrico', value: '3x cada perna' },
+            { name: 'Alongamento posterior coxa', value: '3x20s' },
+            { name: 'Ponte unilateral (glúteo)', value: '3x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Core e Coluna',
+          exercises: [
+            { name: 'Bird-dog com pausa', value: '3x12' },
+            { name: 'Prancha lateral com elevação quadril', value: '3x20s' },
+            { name: 'Mobilidade torácica em 4 apoios', value: '3x12' },
+            { name: 'Alongamento cobra', value: '3x20s' },
+            { name: 'Hollow hold', value: '3x20s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Full Body Mobilidade Ativa',
+          exercises: [
+            { name: 'Caminhada do urso', value: '3x12 passos' },
+            { name: 'Caminhada do caranguejo', value: '3x12 passos' },
+            { name: 'Fire hydrant (quadril)', value: '3x12 cada perna' },
+            { name: 'Mobilidade dinâmica de ombro (elástico)', value: '3x12' },
+            { name: 'Alongamento global em pé', value: '3x30s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+    },
+    // Treinos completos para o nível Avançado extraídos do PDF.
+    'Avançado': {
+      'Perda de Peso': [
+        {
+          name: 'Treino 1 – Peito e Ombro',
+          exercises: [
+            { name: 'Supino reto barra', value: '5x15 (descanso 30s)' },
+            { name: 'Supino inclinado halteres', value: '4x12-15' },
+            { name: 'Crucifixo máquina', value: '4x15 (drop set na última série)' },
+            { name: 'Desenvolvimento militar barra', value: '4x12' },
+            { name: 'Elevação lateral + frontal (bi-set)', value: '4x12 cada' },
+            { name: 'Flexão de braço com batida de mão', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Agachamento livre barra', value: '5x15' },
+            { name: 'Leg press', value: '4x15 (drop set última série)' },
+            { name: 'Afundo caminhando com halteres', value: '4x12 cada perna' },
+            { name: 'Cadeira extensora + mesa flexora (bi-set)', value: '4x12-15' },
+            { name: 'Stiff com barra', value: '4x12' },
+            { name: 'Panturrilha em pé explosiva', value: '4x25' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Barra fixa com carga', value: '5x10-12' },
+            { name: 'Remada curvada barra', value: '4x12' },
+            { name: 'Puxada polia frente', value: '4x12' },
+            { name: 'Remada unilateral halteres', value: '3x12 cada braço' },
+            { name: 'Abdominal infra com caneleira', value: '4x20' },
+            { name: 'Prancha dinâmica com deslocamento', value: '4x45s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Rosca direta barra', value: '5x12' },
+            { name: 'Rosca inclinada halteres', value: '4x12' },
+            { name: 'Rosca concentrada', value: '3x12' },
+            { name: 'Tríceps corda', value: '5x12' },
+            { name: 'Tríceps testa barra W', value: '4x12' },
+            { name: 'Mergulho entre bancos com peso', value: '3x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Full Body + HIIT Pesado',
+          exercises: [
+            { name: 'Supino reto halteres', value: '3x12' },
+            { name: 'Agachamento frontal barra', value: '3x12' },
+            { name: 'Levantamento terra', value: '3x10' },
+            { name: 'Desenvolvimento militar barra', value: '3x12' },
+            { name: 'HIIT esteira/bike', value: '15 min (20s sprint / 10s leve – Tabata)' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Ganho de Massa': [
+        {
+          name: 'Treino 1 – Peito + Ombro',
+          exercises: [
+            { name: 'Supino reto barra', value: '6x6-8 (pirâmide crescente)' },
+            { name: 'Supino inclinado halteres', value: '5x8' },
+            { name: 'Crucifixo inclinado', value: '4x10' },
+            { name: 'Desenvolvimento militar barra', value: '5x8' },
+            { name: 'Elevação lateral', value: '4x12-15' },
+            { name: 'Encolhimento de ombros', value: '4x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Pernas',
+          exercises: [
+            { name: 'Agachamento livre barra', value: '6x6-8 (carga alta)' },
+            { name: 'Leg press', value: '5x10' },
+            { name: 'Passada andando com barra', value: '4x12 cada perna' },
+            { name: 'Cadeira extensora', value: '4x12 (rest-pause na última série)' },
+            { name: 'Stiff barra', value: '5x8-10' },
+            { name: 'Panturrilha sentado', value: '5x25' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Costas + Abdômen',
+          exercises: [
+            { name: 'Barra fixa com peso', value: '6x6-10' },
+            { name: 'Remada curvada barra', value: '5x8' },
+            { name: 'Puxada polia frente', value: '4x10' },
+            { name: 'Remada baixa máquina', value: '4x10' },
+            { name: 'Levantamento terra', value: '4x6' },
+            { name: 'Abdominal infra com peso', value: '5x15-20' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Braços',
+          exercises: [
+            { name: 'Rosca direta barra', value: '5x8' },
+            { name: 'Rosca inclinada halteres', value: '4x10' },
+            { name: 'Rosca martelo com corda', value: '4x10' },
+            { name: 'Tríceps corda', value: '5x8-10' },
+            { name: 'Tríceps francês halteres', value: '4x10' },
+            { name: 'Paralelas com peso', value: '4x até a falha' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Ombro + Core',
+          exercises: [
+            { name: 'Desenvolvimento militar barra', value: '6x6-8' },
+            { name: 'Elevação lateral', value: '5x12' },
+            { name: 'Elevação frontal polia', value: '4x12' },
+            { name: 'Face pull', value: '4x12' },
+            { name: 'Prancha com peso', value: '5x60s' },
+            { name: 'Abdominal oblíquo com peso', value: '4x15 cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+      'Manutenção/Mobilidade': [
+        {
+          name: 'Treino 1 – Coluna e Quadril',
+          exercises: [
+            { name: 'Gato-camelo com pausa de 2s', value: '3x12' },
+            { name: 'Ponte de quadril unilateral com elevação de braço', value: '3x12 cada lado' },
+            { name: 'Prancha com toque no ombro', value: '3x12' },
+            { name: 'Mobilidade torácica em 4 apoios (girar tronco)', value: '3x12 cada lado' },
+            { name: 'Dead bug avançado (com peso leve)', value: '3x12' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 2 – Ombros e Braços',
+          exercises: [
+            { name: 'Mobilidade com bastão (passar por trás da cabeça)', value: '3x12' },
+            { name: 'Rotação externa com elástico em pé', value: '3x15' },
+            { name: 'Face pull (elástico ou polia)', value: '3x12' },
+            { name: 'Y-T-W (mobilidade escapular deitado)', value: '3x12 cada posição' },
+            { name: 'Flexão de braço isométrica (segurar meio movimento)', value: '3x20s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 3 – Pernas e Joelhos',
+          exercises: [
+            { name: 'Agachamento sumô profundo com pausa', value: '3x10' },
+            { name: 'Mobilidade tornozelo (avanço com joelho)', value: '3x12 cada perna' },
+            { name: 'Afundo búlgaro isométrico (segura 15s)', value: '3x cada perna' },
+            { name: 'Ponte de glúteo unilateral com pé elevado', value: '3x12' },
+            { name: 'Caminhada lateral com miniband (elástico)', value: '3x12 passos cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 4 – Core e Coluna',
+          exercises: [
+            { name: 'Bird-dog com elástico', value: '3x12 cada lado' },
+            { name: 'Prancha lateral com elevação de quadril', value: '3x12 cada lado' },
+            { name: 'Hollow body hold (corpo em forma de barquinho)', value: '3x20s' },
+            { name: 'Mobilidade torácica com bastão (em pé, girando tronco)', value: '3x12' },
+            { name: 'Abdominal hipopressivo', value: '3x30s' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+        {
+          name: 'Treino 5 – Full Body Mobilidade Ativa',
+          exercises: [
+            { name: 'Caminhada do urso (bear crawl)', value: '3x15 passos' },
+            { name: 'Caminhada do caranguejo', value: '3x15 passos' },
+            { name: 'Fire hydrant com elástico', value: '3x15 cada lado' },
+            { name: 'Mobilidade de ombro com elástico (abdução e adução)', value: '3x12' },
+            { name: 'Turkish Get Up (subida turca com halter leve)', value: '3x6 cada lado' },
+            { name: 'Alongamento', value: '' },
+          ],
+        },
+      ],
+    },
+  };
+
+  // Para o nível "Em branco", gera cinco dias vazios, que poderão
+  // ser totalmente editados depois pelo usuário na tela de ajustes.
+  function blankFiveDays() {
+    const days = [];
+    for (let i = 1; i <= 5; i++) {
+      days.push({
+        name: `Dia ${i}`,
+        exercises: baseSix('Aquecimento'),
+      });
+    }
+    return days;
+  }
+
+  // Retorna um array de treinos com base no nível e objetivo
+  function buildTrainingsByLevel(level, objetivo) {
+    if (level === 'Em branco') return blankFiveDays();
+    const lvlObj = templates[level] || templates['Iniciante'];
+    // Ajusta a chave do objetivo: "Manutenção" e "Manutenção/Mobilidade" são tratados juntos
+    const key = (objetivo === 'Manutenção' || objetivo === 'Manutenção/Mobilidade')
+      ? 'Manutenção/Mobilidade'
+      : objetivo;
+    const list = (lvlObj && lvlObj[key]) ? lvlObj[key] : blankFiveDays();
+    // Copia profundamente para não alterar o modelo original
+    return JSON.parse(JSON.stringify(list));
+  }
+
   /* Página Home */
   if (document.body.classList.contains('home')) {
     const greeting = document.getElementById('greeting');
@@ -715,6 +1334,35 @@ document.addEventListener('DOMContentLoaded', () => {
       e.target.value = newVal;
     });
 
+    /* =============================
+       RF3 – Inserir campo "Nível de treino"
+       Este bloco injeta dinamicamente, entre os campos de peso e objetivo,
+       um seletor de nível de treino com quatro opções: Iniciante,
+       Intermediário, Avançado e Em branco. Isso permite que o usuário
+       escolha o nível de intensidade desejado antes de gerar o plano.
+    =============================*/
+    const planFormEl = document.getElementById('planForm');
+    if (planFormEl && !document.getElementById('nivelTreino')) {
+      // Localiza o grupo de peso para inserir o novo seletor após ele
+      const pesoGroup = document.getElementById('peso')?.closest('.input-group');
+      const nivelGroup = document.createElement('div');
+      nivelGroup.className = 'input-group';
+      nivelGroup.innerHTML = `
+        <label for="nivelTreino">Nível de treino</label>
+        <select id="nivelTreino" required>
+          <option value="Iniciante">Iniciante</option>
+          <option value="Intermediário">Intermediário</option>
+          <option value="Avançado">Avançado</option>
+          <option value="Em branco">Em branco (editável)</option>
+        </select>
+      `;
+      if (pesoGroup && pesoGroup.nextSibling) {
+        planFormEl.insertBefore(nivelGroup, pesoGroup.nextSibling);
+      } else {
+        planFormEl.appendChild(nivelGroup);
+      }
+    }
+
     const planForm = document.getElementById('planForm');
     if (planForm) {
       planForm.addEventListener('submit', (e) => {
@@ -743,49 +1391,30 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // Cria o plano
+        /* =============================
+           RF3 – CRIAÇÃO DO PLANO DE TREINO
+           Aqui criamos o plano utilizando o nível de treino escolhido pelo
+           usuário e o objetivo selecionado. Utilizamos a função
+           buildTrainingsByLevel() para obter cinco dias com seis exercícios
+           cada. O campo "level" é salvo para referência futura (não usado
+           atualmente). O plano é então salvo em localStorage e o usuário
+           redirecionado para a página de ajustes.
+        =============================*/
+        const nivelVal = document.getElementById('nivelTreino')?.value || 'Iniciante';
         const plans = getPlans();
         const newPlan = {
           id: Date.now(),
-          // Armazena altura e peso como números convertendo vírgula para ponto
           height: alturaNum,
           weight: pesoNum,
           objective: objetivoVal,
-          trainings: [
-            {
-              name: 'Treino A',
-              exercises: [
-                { name: 'Aquecimento', value: '15min' },
-                { name: 'Exercício 1', value: '3x12' },
-                { name: 'Exercício 2', value: '3x12' },
-                { name: 'Exercício 3', value: '3x12' },
-              ],
-            },
-            {
-              name: 'Treino B',
-              exercises: [
-                { name: 'Aquecimento', value: '15min' },
-                { name: 'Exercício 1', value: '3x12' },
-                { name: 'Exercício 2', value: '3x12' },
-                { name: 'Exercício 3', value: '3x12' },
-              ],
-            },
-            {
-              name: 'Treino C',
-              exercises: [
-                { name: 'Aquecimento', value: '15min' },
-                { name: 'Exercício 1', value: '3x12' },
-                { name: 'Exercício 2', value: '3x12' },
-                { name: 'Exercício 3', value: '3x12' },
-              ],
-            },
-          ],
+          level: nivelVal,
+          trainings: buildTrainingsByLevel(nivelVal, objetivoVal),
           history: [],
         };
         plans.push(newPlan);
         savePlans(plans);
         alert('Plano criado com sucesso! Você poderá ajustá-lo posteriormente.');
-        // Após criar, volta para a home ou abre a página de ajustes
+        // Redireciona diretamente para a tela de ajustes para permitir edição imediata
         window.location.href = 'adjust.html';
       });
     }
@@ -817,6 +1446,133 @@ document.addEventListener('DOMContentLoaded', () => {
     const trainingsContainer = document.getElementById('trainingsContainer');
     const cancelAdjustBtn = document.getElementById('cancelAdjust');
     const saveAdjustBtn = document.getElementById('saveAdjust');
+
+    /* =============================
+       RF4 – Funções auxiliares para Ajustes do Plano
+       Aqui definimos componentes reutilizáveis para desenhar dias e
+       exercícios de forma dinâmica. Cada dia possui um input para o
+       título e uma lista editável de exercícios. Cada exercício tem
+       campos para nome e valor e um botão para remoção. O container
+       para cada dia guarda um método _getData() que retorna os dados
+       inseridos pelo usuário, facilitando a coleta no momento do
+       salvamento.
+    =============================*/
+    // Armazenará as referências dos dias renderizados
+    let dayNodes = [];
+
+    // Cria uma linha de exercício editável (nome, valor, botão remover)
+    function renderExerciseRow(exercise) {
+      const row = document.createElement('div');
+      row.className = 'exercise-row';
+      // Nome do exercício
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      // Usa classes ex-name/ex-value para compatibilidade com coleta
+      nameInput.className = 'ex-name';
+      nameInput.value = exercise.name || '';
+      // Valor do exercício (séries/repetições ou tempo)
+      const valueInput = document.createElement('input');
+      valueInput.type = 'text';
+      // Usa classes ex-name/ex-value para compatibilidade com coleta
+      valueInput.className = 'ex-value';
+      valueInput.value = exercise.value || '';
+      // Botão de remover
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.textContent = '–';
+      delBtn.className = 'btn';
+      delBtn.title = 'Remover exercício';
+      delBtn.addEventListener('click', () => {
+        row.remove();
+      });
+      row.appendChild(nameInput);
+      row.appendChild(valueInput);
+      row.appendChild(delBtn);
+      return row;
+    }
+
+    // Cria e retorna um container para um dia de treino
+    function renderTrainingDay(training, dayIndex) {
+      const day = document.createElement('div');
+      // Usa a mesma classe "training-item" para herdar estilos do CSS existente
+      day.className = 'training-item';
+      /*
+        Cabeçalho do dia: exibe um rótulo "TREINO X" e um campo de texto editável
+        para o nome do treino. Também inclui um botão de exclusão (–) para remover
+        todo o dia. O rótulo facilita a identificação visual do dia conforme o
+        layout fornecido na imagem de exemplo. O nome do treino pode ser editado
+        pelo usuário conforme requerido (req. 1). O botão de exclusão permite
+        remover o dia completo.
+      */
+      const header = document.createElement('div');
+      header.className = 'training-header';
+      // Label "TREINO X"
+      const label = document.createElement('span');
+      label.className = 'training-label';
+      label.textContent = `TREINO ${dayIndex + 1}`;
+      // Campo para nome do treino (editável)
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.className = 'training-name';
+      titleInput.value = training.name || `Treino ${dayIndex + 1}`;
+      // Botão de deletar dia (representado por "–")
+      const delDayBtn = document.createElement('button');
+      delDayBtn.type = 'button';
+      delDayBtn.className = 'btn del-day-btn';
+      delDayBtn.textContent = '–';
+      delDayBtn.title = 'Excluir este treino';
+      delDayBtn.addEventListener('click', () => {
+        day.remove();
+        // Remove referência deste dia do array dayNodes
+        dayNodes = dayNodes.filter((n) => n !== day);
+        // Reindexa os rótulos "TREINO X" remanescentes
+        const remaining = document.querySelectorAll('.training-item');
+        remaining.forEach((item, idx) => {
+          const lbl = item.querySelector('.training-label');
+          if (lbl) lbl.textContent = `TREINO ${idx + 1}`;
+        });
+      });
+      // Monta cabeçalho
+      header.appendChild(label);
+      header.appendChild(titleInput);
+      header.appendChild(delDayBtn);
+      day.appendChild(header);
+      // Lista de exercícios
+      const list = document.createElement('div');
+      list.className = 'exercise-list';
+      (training.exercises || []).forEach((ex) => {
+        list.appendChild(renderExerciseRow(ex));
+      });
+      // Botão para adicionar novo exercício (representado por "+")
+      const addExBtn = document.createElement('button');
+      addExBtn.type = 'button';
+      addExBtn.className = 'btn add-ex-btn';
+      addExBtn.textContent = '+ Exercício';
+      addExBtn.title = 'Adicionar novo exercício';
+      addExBtn.addEventListener('click', () => {
+        list.appendChild(
+          renderExerciseRow({ name: `Exercício ${list.children.length}`, value: '3x12' })
+        );
+      });
+      day.appendChild(list);
+      day.appendChild(addExBtn);
+      // Método para retornar dados atualizados deste dia
+      day._getData = () => {
+        const name = titleInput.value.trim() || `Treino ${dayIndex + 1}`;
+        const exercises = Array.from(list.children)
+          .filter((el) => el.classList.contains('exercise-row'))
+          .map((row) => {
+            const nameInput = row.querySelector('.ex-name');
+            const valueInput = row.querySelector('.ex-value');
+            return {
+              name: nameInput.value.trim() || 'Exercício',
+              value: valueInput.value.trim() || '3x12',
+            };
+          });
+        return { name, exercises };
+      };
+      return day;
+    }
 
     // Renderiza a lista de planos
     function renderPlanList() {
@@ -859,53 +1615,79 @@ document.addEventListener('DOMContentLoaded', () => {
       const plans = getPlans();
       const plan = plans.find((p) => p.id == planId);
       if (!plan || !planDetailsEl) return;
-      // Preenche campos
-      // Usa os valores numéricos do plano diretamente; se houver casas decimais, serão exibidas (e.g., 1.7)
-      document.getElementById('adjustAltura').value = plan.height !== undefined ? plan.height : '';
-      document.getElementById('adjustPeso').value = plan.weight !== undefined ? plan.weight : '';
-      document.getElementById('adjustObjetivo').value = plan.objective;
-      planNameTitle.textContent = `Plano (${plan.objective})`;
-      // Renderiza treinos
+      // Preenche campos de métricas
+      // Converte números para strings utilizando vírgula como separador decimal para exibição.
+      const alturaInput = document.getElementById('adjustAltura');
+      const pesoInputAj = document.getElementById('adjustPeso');
+      if (alturaInput) {
+        if (plan.height !== undefined && plan.height !== null) {
+          // Garante que um valor como 1.7 seja exibido como "1,7" ou "1,70"
+          const alturaStr = plan.height.toString().replace('.', ',');
+          alturaInput.value = alturaStr;
+        } else {
+          alturaInput.value = '';
+        }
+      }
+      if (pesoInputAj) {
+        if (plan.weight !== undefined && plan.weight !== null) {
+          const pesoStr = plan.weight.toString().replace('.', ',');
+          pesoInputAj.value = pesoStr;
+        } else {
+          pesoInputAj.value = '';
+        }
+      }
+      // Preenche o objetivo
+      const ajustObjSelect = document.getElementById('adjustObjetivo');
+      if (ajustObjSelect) ajustObjSelect.value = plan.objective;
+      // Exibe título do plano no formato "Plano <Objetivo>" sem parênteses para melhorar a legibilidade
+      planNameTitle.textContent = `Plano ${plan.objective}`;
+      // Renderiza treinos de forma dinâmica utilizando os componentes
+      // definidos em RF4. Primeiro limpa o container e o array de nós.
       trainingsContainer.innerHTML = '';
-      plan.trainings.forEach((training, tIndex) => {
-        const trainingDiv = document.createElement('div');
-        trainingDiv.classList.add('training-item');
-        // Nome do treino
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = training.name;
-        nameInput.classList.add('training-name');
-        nameInput.dataset.tIndex = tIndex;
-        trainingDiv.appendChild(nameInput);
-        // Lista de exercícios
-        const ul = document.createElement('ul');
-        ul.classList.add('exercise-list');
-        training.exercises.forEach((exercise, eIndex) => {
-          const li = document.createElement('li');
-          // Campo de nome do exercício (editável)
-          const exerciseNameInput = document.createElement('input');
-          exerciseNameInput.type = 'text';
-          exerciseNameInput.value = exercise.name;
-          exerciseNameInput.classList.add('exercise-name');
-          exerciseNameInput.dataset.tIndex = tIndex;
-          exerciseNameInput.dataset.eIndex = eIndex;
-          exerciseNameInput.style.width = '140px';
-          // Campo de valor do exercício (editável)
-          const valueInput = document.createElement('input');
-          valueInput.type = 'text';
-          valueInput.value = exercise.value;
-          valueInput.classList.add('exercise-value');
-          valueInput.dataset.tIndex = tIndex;
-          valueInput.dataset.eIndex = eIndex;
-          valueInput.style.marginLeft = '0.5rem';
-          valueInput.style.width = '80px';
-          li.appendChild(exerciseNameInput);
-          li.appendChild(valueInput);
-          ul.appendChild(li);
-        });
-        trainingDiv.appendChild(ul);
-        trainingsContainer.appendChild(trainingDiv);
+      dayNodes = [];
+      plan.trainings.forEach((training, idx) => {
+        const node = renderTrainingDay(training, idx);
+        trainingsContainer.appendChild(node);
+        dayNodes.push(node);
       });
+      // Insere a barra "Adicionar Novo Treino" no topo do container. Esta barra contém
+      // um texto informativo e um botão "+" para criar um novo treino em branco. A
+      // barra é recriada toda vez que abrimos os detalhes para garantir que não
+      // existam múltiplas barras.
+      // Remove barra existente se já houver
+      const existingBar = document.getElementById('addTrainingBar');
+      if (existingBar) existingBar.remove();
+      const bar = document.createElement('div');
+      bar.id = 'addTrainingBar';
+      bar.className = 'add-training-bar';
+      // Texto e botão
+      const barText = document.createElement('span');
+      barText.textContent = 'ADICIONAR NOVO TREINO';
+      const barBtn = document.createElement('button');
+      barBtn.type = 'button';
+      barBtn.className = 'btn add-day-btn';
+      barBtn.textContent = '+';
+      barBtn.title = 'Criar novo treino';
+      barBtn.addEventListener('click', () => {
+        const newIdx = dayNodes.length;
+        // Cria um treino em branco com estrutura padrão (aquecimento, exercícios e alongamento).
+        // A função baseSix() já inclui um alongamento no final, portanto não é necessário
+        // adicionar novamente outro alongamento.
+        const exs = baseSix('Aquecimento');
+        const node = renderTrainingDay({ name: `Treino ${newIdx + 1}`, exercises: exs }, newIdx);
+        trainingsContainer.appendChild(node);
+        dayNodes.push(node);
+        // Atualiza rótulos "TREINO X" de todos os treinos após inserção
+        const items = document.querySelectorAll('.training-item');
+        items.forEach((it, idx2) => {
+          const lbl = it.querySelector('.training-label');
+          if (lbl) lbl.textContent = `TREINO ${idx2 + 1}`;
+        });
+      });
+      bar.appendChild(barText);
+      bar.appendChild(barBtn);
+      // Insere a barra antes de trainingsContainer
+      trainingsContainer.parentElement.insertBefore(bar, trainingsContainer);
       planDetailsEl.style.display = 'block';
       // Armazena ID do plano atualmente em edição
       planDetailsEl.dataset.currentId = plan.id;
@@ -954,28 +1736,8 @@ document.addEventListener('DOMContentLoaded', () => {
         plan.height = parseFloat(document.getElementById('adjustAltura').value.toString().replace(',', '.'));
         plan.weight = parseFloat(document.getElementById('adjustPeso').value.toString().replace(',', '.'));
         plan.objective = document.getElementById('adjustObjetivo').value;
-        // Atualiza treinos
-        // Percorre inputs de nomes de treinos
-        const nameInputs = trainingsContainer.querySelectorAll('.training-name');
-        nameInputs.forEach((input) => {
-          const tIndex = parseInt(input.dataset.tIndex);
-          plan.trainings[tIndex].name = input.value || plan.trainings[tIndex].name;
-        });
-        // Atualiza nomes e valores dos exercícios
-        const exerciseNameInputs = trainingsContainer.querySelectorAll('.exercise-name');
-        exerciseNameInputs.forEach((input) => {
-          const tIndex = parseInt(input.dataset.tIndex);
-          const eIndex = parseInt(input.dataset.eIndex);
-          plan.trainings[tIndex].exercises[eIndex].name =
-            input.value || plan.trainings[tIndex].exercises[eIndex].name;
-        });
-        const exerciseValueInputs = trainingsContainer.querySelectorAll('.exercise-value');
-        exerciseValueInputs.forEach((input) => {
-          const tIndex = parseInt(input.dataset.tIndex);
-          const eIndex = parseInt(input.dataset.eIndex);
-          plan.trainings[tIndex].exercises[eIndex].value =
-            input.value || plan.trainings[tIndex].exercises[eIndex].value;
-        });
+        // Constrói a nova lista de treinos a partir dos elementos dinâmicos
+        plan.trainings = dayNodes.map((node, idx) => node._getData());
         // Salva de volta
         plans[planIndex] = plan;
         savePlans(plans);
