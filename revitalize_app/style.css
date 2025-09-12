@@ -443,9 +443,10 @@ body.plan select {
 }
 
 .training-name {
+  /* O campo de nome do treino ocupa o espaço disponível no cabeçalho. */
+  flex: 1;
   margin-bottom: 0.3rem;
   padding: 0.3rem;
-  width: 100%;
   border: 1px solid var(--gray-color);
   border-radius: 4px;
   font-weight: 600;
@@ -462,4 +463,122 @@ body.plan select {
 .adjust-buttons .btn {
   width: auto;
   padding: 0.6rem 1rem;
+}
+
+/* ====================================================================
+   Estilos adicionais para Ajustes de Plano (RF4)
+   Estes estilos configuram o cabeçalho de cada treino, os campos de
+   exercícios, a barra para adicionar novo treino e os botões de
+   adicionar/excluir, seguindo o layout de referência fornecido pelo
+   usuário. A prioridade é a legibilidade e a organização dos itens
+   dentro da página de ajustes.
+==================================================================== */
+
+/* Cabeçalho de cada treino: exibe "TREINO X", campo editável para o nome
+   do treino e botão para excluir o dia inteiro */
+.training-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.training-label {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+/* O campo de nome do treino herda de .training-name, mas aqui reforçamos
+   que ele use todo o espaço disponível no cabeçalho */
+.training-name {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Botão para deletar todo o treino (dia) */
+.del-day-btn {
+  background: none;
+  border: none;
+  color: var(--error-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Lista de exercícios dentro de um treino */
+.exercise-list {
+  margin-bottom: 0.4rem;
+}
+
+/* Linha de exercício: nome, valor e botão para remover o exercício */
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Campos de nome e valor do exercício */
+.exercise-row .ex-name,
+.exercise-row .ex-value {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+}
+
+/* Botão de remover exercício */
+.exercise-row .btn {
+  background: none;
+  border: none;
+  color: var(--error-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Botão para adicionar novo exercício dentro de um treino */
+.add-ex-btn {
+  margin-top: 0.3rem;
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+  border: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.add-ex-btn:hover {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+}
+
+/* Barra para adicionar novo treino: texto e botão + */
+.add-training-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.8rem;
+  font-weight: bold;
+}
+
+.add-training-bar .btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--dark-color);
+  cursor: pointer;
+  line-height: 1;
+}
+.add-training-bar .btn:hover {
+  color: var(--primary-color);
 }
