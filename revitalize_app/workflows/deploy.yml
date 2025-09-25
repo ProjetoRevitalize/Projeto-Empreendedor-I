@@ -3,42 +3,22 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main  # roda sempre que houver push na main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Fazer checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Configurar Node.js (se precisar de build)
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          node-version: '18' # ajuste se necessário
+          path: revitalize_app  # pasta que contém index.html
 
-      # 3. Instalar dependências (opcional)
-      - name: Install dependencies
-        run: |
-          cd revitalize_app
-          npm install || echo "No dependencies to install"
-
-      # 4. Build do projeto (opcional)
-      - name: Build project
-        run: |
-          cd revitalize_app
-          npm run build || echo "No build script, skipping"
-
-      # 5. Deploy para GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v6
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./revitalize_app
-          publish_branch: main   # publica diretamente na branch main
-          keep_files: true
-          user_name: 'GitHub Actions'
-          user_email: 'actions@github.com'
+        uses: actions/deploy-pages@v1
