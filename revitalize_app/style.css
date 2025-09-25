@@ -481,6 +481,7 @@ body.plan select {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.4rem;
+  flex-wrap: nowrap;
 }
 
 .training-label {
@@ -509,52 +510,107 @@ body.plan select {
   line-height: 1;
 }
 
+/* Botão para adicionar novo treino (dia) */
+.add-day-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.add-day-btn:hover {
+  color: var(--secondary-color);
+}
+
 /* Lista de exercícios dentro de um treino */
 .exercise-list {
   margin-bottom: 0.4rem;
 }
 
 /* Linha de exercício: nome, valor e botão para remover o exercício */
-.exercise-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+/* Estilo da tabela de exercícios */
+.exercise-table {
+  width: 100%;
+  margin-bottom: 0.6rem;
 }
 
-/* Campos de nome e valor do exercício */
-.exercise-row .ex-name,
-.exercise-row .ex-value {
-  flex: 1;
-  padding: 0.4rem;
+/* Cada linha da tabela utiliza grade para alinhar colunas */
+/* As colunas têm larguras fixas para garantir alinhamento com o cabeçalho */
+.exercise-row {
+  display: grid;
+  /* A primeira coluna (nome) usa 2fr para ocupar mais espaço.
+     As quatro colunas seguintes (peso, séries, repetições, tempo) usam 1fr cada.
+     As duas últimas colunas têm largura fixa para comportar os botões de ação. */
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 28px 28px;
+  gap: 0.4rem;
+  /* Alinha os itens verticalmente ao topo para permitir que o campo de nome expanda a linha ao crescer */
+  align-items: flex-start;
+  margin-bottom: 0.3rem;
+}
+
+/* Cabeçalho da tabela */
+.exercise-row.header {
+  font-weight: bold;
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+  padding: 0.3rem 0.2rem;
+  border-radius: 4px;
+  align-items: center;
+}
+.exercise-row.header span {
+  display: block;
+}
+
+/* Campos de entrada das células */
+.exercise-row input {
+  padding: 0.35rem;
   border: 1px solid var(--gray-color);
   border-radius: 4px;
+  width: 100%;
+  font-size: 0.9rem;
 }
 
-/* Botão de remover exercício */
+/* Textarea para o nome do exercício (permite quebra de linha) */
+.exercise-row textarea {
+  padding: 0.35rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  width: 100%;
+  font-size: 0.9rem;
+  resize: vertical;
+  line-height: 1.2;
+  font-family: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Botões de ação nas linhas de exercício */
 .exercise-row .btn {
   background: none;
   border: none;
-  color: var(--error-color);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   line-height: 1;
 }
-
-/* Botão para adicionar novo exercício dentro de um treino */
-.add-ex-btn {
-  margin-top: 0.3rem;
-  background-color: var(--accent-color);
-  color: var(--dark-color);
-  border: none;
-  padding: 0.4rem 0.6rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
+.exercise-row .add-ex-row {
+  color: var(--primary-color);
 }
-.add-ex-btn:hover {
-  background-color: var(--primary-color);
-  color: var(--light-color);
+.exercise-row .del-ex-row {
+  color: var(--error-color);
+}
+
+/*
+ * Linha de exercício expandida
+ *
+ * Quando o nome do exercício ocupa mais de uma linha, a classe `multi-line` é
+ * aplicada ao elemento `.exercise-row` via JavaScript. A grid permanece a mesma,
+ * mas esta classe serve para ajustes ou personalizações futuras.
+ */
+.exercise-row.multi-line {
+  /* Nenhuma alteração de colunas é necessária no momento, mas a classe facilita
+     o targeting de linhas expandidas caso o layout precise ser ajustado. */
 }
 
 /* Barra para adicionar novo treino: texto e botão + */

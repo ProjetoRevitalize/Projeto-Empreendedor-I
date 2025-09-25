@@ -1,4 +1,4 @@
-/*-------------------Unidade 4-------------------*/
+/*-------------------Unidade 1-------------------*/
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1460,33 +1460,131 @@ document.addEventListener('DOMContentLoaded', () => {
     // Armazenará as referências dos dias renderizados
     let dayNodes = [];
 
-    // Cria uma linha de exercício editável (nome, valor, botão remover)
-    function renderExerciseRow(exercise) {
+    /**
+     * Faz o parsing de um valor de exercício no formato antigo (ex.: "3x12-15", "10 min",
+     * "3x30s", "3x até a falha"). Retorna um objeto com as propriedades
+     * series, rep e tempo preenchidas conforme o conteúdo detectado. Caso o
+     * valor não contenha a letra "x" para demarcar séries, assume que é
+     * tempo (se contiver "min" ou "s") ou repetições.
+     * @param {string} value Valor original do exercício
+     * @returns {{series: string, rep: string, tempo: string}}
+     */
+    function parseExerciseValue(value) {
+      const result = { series: '', rep: '', tempo: '' };
+      if (!value) return result;
+      const v = value.toString().trim().toLowerCase();
+      // Expressão para capturar "n x resto" (ex.: 3x12-15, 3x30s)
+      const match = v.match(/^(\d+)\s*x\s*(.+)$/);
+      if (match) {
+        result.series = match[1];
+        const rest = match[2];
+        // Se o restante contém minutos ou segundos, interpreta como tempo
+        if (/\b(min|s)\b/.test(rest) || /\d+\s*(min|s)/.test(rest)) {
+          result.tempo = rest;
+        } else {
+          result.rep = rest;
+        }
+      } else {
+        // Nenhum "x" encontrado: se contiver min/s trata como tempo
+        if (/\b(min|s)\b/.test(v) || /\d+\s*(min|s)/.test(v)) {
+          result.tempo = v;
+        } else {
+          result.rep = v;
+        }
+      }
+      return result;
+    }
+
+    /**
+     * Cria uma linha de exercício editável em formato de tabela. Cada linha
+     * contém campos para nome, peso, séries, repetições e tempo (min/h), além
+     * de botões de adicionar e remover linha. Ao clicar em "+" uma nova linha
+     * em branco é criada logo abaixo da atual. Ao clicar em "–" a linha
+     * corrente é removida. A lista de linhas é passada como parâmetro para
+     * permitir a inserção dinâmica.
+     *
+     * @param {Object} exercise Objeto contendo as propriedades name, weight, series, rep e tempo
+     * @param {HTMLElement} list O contêiner no qual a linha será inserida
+     * @returns {HTMLElement} O elemento da linha criada
+     */
+    function renderExerciseRow(exercise, list) {
       const row = document.createElement('div');
       row.className = 'exercise-row';
-      // Nome do exercício
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      // Usa classes ex-name/ex-value para compatibilidade com coleta
+      // Campo: nome do exercício (usa textarea para permitir quebra de linha)
+      const nameInput = document.createElement('textarea');
+      nameInput.rows = 1;
       nameInput.className = 'ex-name';
       nameInput.value = exercise.name || '';
-      // Valor do exercício (séries/repetições ou tempo)
-      const valueInput = document.createElement('input');
-      valueInput.type = 'text';
-      // Usa classes ex-name/ex-value para compatibilidade com coleta
-      valueInput.className = 'ex-value';
-      valueInput.value = exercise.value || '';
-      // Botão de remover
+      // --- Ajuste dinâmico da altura ---
+      // Para garantir que o texto completo do exercício seja visível, ajustamos
+      // dinamicamente a altura do textarea com base em seu conteúdo. Se o
+      // conteúdo ocupar mais de aproximadamente uma linha, adicionamos uma
+      // classe "multi-line" na linha inteira para permitir que todos os
+      // outros campos se alinhem no topo e aproveitem o espaço extra.
+      function adjustTextareaHeight() {
+        // Reinicia a altura antes de calcular a nova altura
+        nameInput.style.height = 'auto';
+        // Define a nova altura com base no scrollHeight
+        nameInput.style.height = nameInput.scrollHeight + 'px';
+        // Verifica se o conteúdo ocupa mais de 1,5 linhas (empírico)
+        const lineHeight = parseFloat(getComputedStyle(nameInput).lineHeight) || 16;
+        if (nameInput.scrollHeight > lineHeight * 1.5) {
+          row.classList.add('multi-line');
+        } else {
+          row.classList.remove('multi-line');
+        }
+      }
+      // Ajuste inicial para valores pré-carregados
+      setTimeout(adjustTextareaHeight);
+      // Ajusta sempre que o usuário digita
+      nameInput.addEventListener('input', adjustTextareaHeight);
+      // Campo: peso (permanece vazio para inserção pelo usuário)
+      const weightInput = document.createElement('input');
+      weightInput.type = 'text';
+      weightInput.className = 'ex-weight';
+      weightInput.value = exercise.weight || '';
+      // Campo: séries
+      const seriesInput = document.createElement('input');
+      seriesInput.type = 'text';
+      seriesInput.className = 'ex-series';
+      seriesInput.value = exercise.series || '';
+      // Campo: repetições
+      const repInput = document.createElement('input');
+      repInput.type = 'text';
+      repInput.className = 'ex-rep';
+      repInput.value = exercise.rep || '';
+      // Campo: tempo (min/h)
+      const tempoInput = document.createElement('input');
+      tempoInput.type = 'text';
+      tempoInput.className = 'ex-tempo';
+      tempoInput.value = exercise.tempo || '';
+      // Botão adicionar nova linha
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'btn add-ex-row';
+      addBtn.textContent = '+';
+      addBtn.title = 'Adicionar novo exercício';
+      addBtn.addEventListener('click', () => {
+        const newRow = renderExerciseRow({ name: '', weight: '', series: '', rep: '', tempo: '' }, list);
+        // Insere logo após a linha atual
+        list.insertBefore(newRow, row.nextSibling);
+      });
+      // Botão remover linha
       const delBtn = document.createElement('button');
       delBtn.type = 'button';
+      delBtn.className = 'btn del-ex-row';
       delBtn.textContent = '–';
-      delBtn.className = 'btn';
-      delBtn.title = 'Remover exercício';
+      delBtn.title = 'Excluir este exercício';
       delBtn.addEventListener('click', () => {
         row.remove();
       });
+      // Constrói a linha no layout de grade
       row.appendChild(nameInput);
-      row.appendChild(valueInput);
+      row.appendChild(weightInput);
+      row.appendChild(seriesInput);
+      row.appendChild(repInput);
+      row.appendChild(tempoInput);
+      row.appendChild(addBtn);
       row.appendChild(delBtn);
       return row;
     }
@@ -1497,12 +1595,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Usa a mesma classe "training-item" para herdar estilos do CSS existente
       day.className = 'training-item';
       /*
-        Cabeçalho do dia: exibe um rótulo "TREINO X" e um campo de texto editável
-        para o nome do treino. Também inclui um botão de exclusão (–) para remover
-        todo o dia. O rótulo facilita a identificação visual do dia conforme o
-        layout fornecido na imagem de exemplo. O nome do treino pode ser editado
-        pelo usuário conforme requerido (req. 1). O botão de exclusão permite
-        remover o dia completo.
+        Cabeçalho do dia: exibe um rótulo "TREINO X", um campo de texto editável
+        para o nome do treino e dois botões: um para adicionar um novo treino
+        logo abaixo ("+") e outro para remover este dia ("–"). O nome do
+        treino pode ser editado pelo usuário conforme requerido. O botão de
+        exclusão remove todo o dia, e o botão de adição insere um dia em
+        branco logo após o atual.
       */
       const header = document.createElement('div');
       header.className = 'training-header';
@@ -1515,6 +1613,43 @@ document.addEventListener('DOMContentLoaded', () => {
       titleInput.type = 'text';
       titleInput.className = 'training-name';
       titleInput.value = training.name || `Treino ${dayIndex + 1}`;
+      // Botão para adicionar novo treino logo abaixo
+      const addDayBtn = document.createElement('button');
+      addDayBtn.type = 'button';
+      addDayBtn.className = 'btn add-day-btn';
+      addDayBtn.textContent = '+';
+      addDayBtn.title = 'Adicionar novo treino abaixo';
+      addDayBtn.addEventListener('click', () => {
+        const parent = day.parentElement;
+        const idx = dayNodes.indexOf(day);
+        const newIdx = idx + 1;
+        // Cria exercícios padrão usando baseSix para garantir ao menos uma estrutura básica
+        const exs = baseSix('Aquecimento').map((ex) => {
+          // Para cada exercício do modelo, fazemos o parse do valor (caso exista)
+          const parsed = parseExerciseValue(ex.value);
+          return {
+            name: ex.name || '',
+            weight: '',
+            series: parsed.series || '',
+            rep: parsed.rep || '',
+            tempo: parsed.tempo || '',
+          };
+        });
+        const newTraining = {
+          name: `Treino ${newIdx + 1}`,
+          exercises: exs,
+        };
+        const newNode = renderTrainingDay(newTraining, newIdx);
+        // Insere o novo nó no DOM após o dia atual
+        parent.insertBefore(newNode, day.nextSibling);
+        // Insere no array dayNodes na posição correta
+        dayNodes.splice(newIdx, 0, newNode);
+        // Atualiza os rótulos "TREINO X" de todos os dias
+        dayNodes.forEach((node, i) => {
+          const lbl = node.querySelector('.training-label');
+          if (lbl) lbl.textContent = `TREINO ${i + 1}`;
+        });
+      });
       // Botão de deletar dia (representado por "–")
       const delDayBtn = document.createElement('button');
       delDayBtn.type = 'button';
@@ -1526,8 +1661,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove referência deste dia do array dayNodes
         dayNodes = dayNodes.filter((n) => n !== day);
         // Reindexa os rótulos "TREINO X" remanescentes
-        const remaining = document.querySelectorAll('.training-item');
-        remaining.forEach((item, idx) => {
+        dayNodes.forEach((item, idx) => {
           const lbl = item.querySelector('.training-label');
           if (lbl) lbl.textContent = `TREINO ${idx + 1}`;
         });
@@ -1535,38 +1669,82 @@ document.addEventListener('DOMContentLoaded', () => {
       // Monta cabeçalho
       header.appendChild(label);
       header.appendChild(titleInput);
+      header.appendChild(addDayBtn);
       header.appendChild(delDayBtn);
       day.appendChild(header);
-      // Lista de exercícios
-      const list = document.createElement('div');
-      list.className = 'exercise-list';
+      /*
+        Monta a tabela de exercícios. A primeira linha é o cabeçalho fixo com
+        os títulos de cada coluna. As linhas subsequentes contêm campos
+        editáveis para nome, peso, séries, repetições e tempo, além dos
+        botões de adicionar e remover linha. Os botões fazem parte da
+        própria linha para que cada linha gerencie sua inserção e remoção.
+      */
+      const table = document.createElement('div');
+      table.className = 'exercise-table';
+      // Cabeçalho
+      const headerRow = document.createElement('div');
+      headerRow.className = 'exercise-row header';
+      ['Nome Exercício', 'Peso', 'Séries', 'Rep.', 'min/h'].forEach((text) => {
+        const cell = document.createElement('span');
+        cell.textContent = text;
+        headerRow.appendChild(cell);
+      });
+      // Adiciona células vazias para alinhar com botões de ação
+      const actionPlaceholder1 = document.createElement('span');
+      const actionPlaceholder2 = document.createElement('span');
+      headerRow.appendChild(actionPlaceholder1);
+      headerRow.appendChild(actionPlaceholder2);
+      table.appendChild(headerRow);
+      // Corpo da tabela
+      const tbody = document.createElement('div');
+      tbody.className = 'exercise-body';
       (training.exercises || []).forEach((ex) => {
-        list.appendChild(renderExerciseRow(ex));
+        // Se o exercício no modelo tiver a propriedade value, converta-a para
+        // series/rep/tempo. Caso contrário, use os campos existentes.
+        let exObj = {};
+        if (Object.prototype.hasOwnProperty.call(ex, 'value')) {
+          const parsed = parseExerciseValue(ex.value);
+          exObj = {
+            name: ex.name || '',
+            weight: '',
+            series: parsed.series || '',
+            rep: parsed.rep || '',
+            tempo: parsed.tempo || '',
+          };
+        } else {
+          exObj = {
+            name: ex.name || '',
+            weight: ex.weight || '',
+            series: ex.series || '',
+            rep: ex.rep || '',
+            tempo: ex.tempo || '',
+          };
+        }
+        tbody.appendChild(renderExerciseRow(exObj, tbody));
       });
-      // Botão para adicionar novo exercício (representado por "+")
-      const addExBtn = document.createElement('button');
-      addExBtn.type = 'button';
-      addExBtn.className = 'btn add-ex-btn';
-      addExBtn.textContent = '+ Exercício';
-      addExBtn.title = 'Adicionar novo exercício';
-      addExBtn.addEventListener('click', () => {
-        list.appendChild(
-          renderExerciseRow({ name: `Exercício ${list.children.length}`, value: '3x12' })
-        );
-      });
-      day.appendChild(list);
-      day.appendChild(addExBtn);
+      // Se não houver exercícios, cria ao menos uma linha em branco
+      if (tbody.children.length === 0) {
+        tbody.appendChild(renderExerciseRow({ name: '', weight: '', series: '', rep: '', tempo: '' }, tbody));
+      }
+      table.appendChild(tbody);
+      day.appendChild(table);
       // Método para retornar dados atualizados deste dia
       day._getData = () => {
-        const name = titleInput.value.trim() || `Treino ${dayIndex + 1}`;
-        const exercises = Array.from(list.children)
+        const name = titleInput.value.trim() || `Treino ${dayNodes.indexOf(day) + 1}`;
+        const exercises = Array.from(tbody.children)
           .filter((el) => el.classList.contains('exercise-row'))
           .map((row) => {
             const nameInput = row.querySelector('.ex-name');
-            const valueInput = row.querySelector('.ex-value');
+            const weightInput = row.querySelector('.ex-weight');
+            const seriesInput = row.querySelector('.ex-series');
+            const repInput = row.querySelector('.ex-rep');
+            const tempoInput = row.querySelector('.ex-tempo');
             return {
               name: nameInput.value.trim() || 'Exercício',
-              value: valueInput.value.trim() || '3x12',
+              weight: weightInput.value.trim() || '',
+              series: seriesInput.value.trim() || '',
+              rep: repInput.value.trim() || '',
+              tempo: tempoInput.value.trim() || '',
             };
           });
         return { name, exercises };
@@ -1615,79 +1793,88 @@ document.addEventListener('DOMContentLoaded', () => {
       const plans = getPlans();
       const plan = plans.find((p) => p.id == planId);
       if (!plan || !planDetailsEl) return;
+
       // Preenche campos de métricas
-      // Converte números para strings utilizando vírgula como separador decimal para exibição.
-      const alturaInput = document.getElementById('adjustAltura');
-      const pesoInputAj = document.getElementById('adjustPeso');
-      if (alturaInput) {
-        if (plan.height !== undefined && plan.height !== null) {
-          // Garante que um valor como 1.7 seja exibido como "1,7" ou "1,70"
-          const alturaStr = plan.height.toString().replace('.', ',');
-          alturaInput.value = alturaStr;
+      // Preparar formatos: display (vírgula) e numeric (ponto) para inputs number
+      const alturaDisplay = (plan.height !== undefined && plan.height !== null)
+        ? Number(plan.height).toFixed(2).replace('.', ',')
+        : '';
+      const alturaNumber = (plan.height !== undefined && plan.height !== null)
+        ? Number(plan.height).toFixed(2)
+        : '';
+
+      const alturaFields = planDetailsEl.querySelectorAll('input[id*=\"altura\" i], input[name*=\"altura\" i]');
+      alturaFields.forEach((field) => {
+        if (field.type === 'number') {
+          field.value = alturaNumber;
         } else {
-          alturaInput.value = '';
+          field.value = alturaDisplay;
         }
+      });
+      // Se nenhum campo de altura foi encontrado dentro de planDetailsEl, procura em todo o documento
+      if (alturaFields.length === 0) {
+        const globalAltFields = document.querySelectorAll('input[id*=\"altura\" i], input[name*=\"altura\" i]');
+        globalAltFields.forEach((field) => {
+          if (field.type === 'number') {
+            field.value = alturaNumber;
+          } else {
+            field.value = alturaDisplay;
+          }
+        });
       }
-      if (pesoInputAj) {
-        if (plan.weight !== undefined && plan.weight !== null) {
-          const pesoStr = plan.weight.toString().replace('.', ',');
-          pesoInputAj.value = pesoStr;
+
+      // Peso (display com vírgula para campos text e número com ponto para inputs number)
+      const pesoDisplay = (plan.weight !== undefined && plan.weight !== null)
+        ? Number(plan.weight).toFixed(2).replace('.', ',')
+        : '';
+      const pesoNumber = (plan.weight !== undefined && plan.weight !== null)
+        ? Number(plan.weight).toFixed(2)
+        : '';
+
+      const pesoFields = planDetailsEl.querySelectorAll('input[id*=\"peso\" i], input[name*=\"peso\" i]');
+      pesoFields.forEach((field) => {
+        if (field.type === 'number') {
+          field.value = pesoNumber;
         } else {
-          pesoInputAj.value = '';
+          field.value = pesoDisplay;
         }
+      });
+      // Se nenhum campo de peso foi encontrado no detalhe, procura globalmente
+      if (pesoFields.length === 0) {
+        const globalPesoFields = document.querySelectorAll('input[id*=\"peso\" i], input[name*=\"peso\" i]');
+        globalPesoFields.forEach((field) => {
+          if (field.type === 'number') {
+            field.value = pesoNumber;
+          } else {
+            field.value = pesoDisplay;
+          }
+        });
       }
+
+      // Campos explícitos adjustAltura / adjustPeso (prefer numeric format for number inputs)
+      const explicitHeightField = document.getElementById('adjustAltura');
+      if (explicitHeightField) {
+        // If it's a number input, set numeric string (with dot). Otherwise use display string with comma.
+        explicitHeightField.value = (explicitHeightField.type === 'number') ? alturaNumber : alturaDisplay;
+      }
+      const explicitWeightField = document.getElementById('adjustPeso');
+      if (explicitWeightField) {
+        explicitWeightField.value = (explicitWeightField.type === 'number') ? pesoNumber : pesoDisplay;
+      }
+
       // Preenche o objetivo
       const ajustObjSelect = document.getElementById('adjustObjetivo');
-      if (ajustObjSelect) ajustObjSelect.value = plan.objective;
-      // Exibe título do plano no formato "Plano <Objetivo>" sem parênteses para melhorar a legibilidade
-      planNameTitle.textContent = `Plano ${plan.objective}`;
-      // Renderiza treinos de forma dinâmica utilizando os componentes
-      // definidos em RF4. Primeiro limpa o container e o array de nós.
+      if (ajustObjSelect) ajustObjSelect.value = plan.objective || '';
+
+      // Renderiza treinos existentes
       trainingsContainer.innerHTML = '';
       dayNodes = [];
-      plan.trainings.forEach((training, idx) => {
+      (plan.trainings || []).forEach((training, idx) => {
         const node = renderTrainingDay(training, idx);
         trainingsContainer.appendChild(node);
         dayNodes.push(node);
       });
-      // Insere a barra "Adicionar Novo Treino" no topo do container. Esta barra contém
-      // um texto informativo e um botão "+" para criar um novo treino em branco. A
-      // barra é recriada toda vez que abrimos os detalhes para garantir que não
-      // existam múltiplas barras.
-      // Remove barra existente se já houver
-      const existingBar = document.getElementById('addTrainingBar');
-      if (existingBar) existingBar.remove();
-      const bar = document.createElement('div');
-      bar.id = 'addTrainingBar';
-      bar.className = 'add-training-bar';
-      // Texto e botão
-      const barText = document.createElement('span');
-      barText.textContent = 'ADICIONAR NOVO TREINO';
-      const barBtn = document.createElement('button');
-      barBtn.type = 'button';
-      barBtn.className = 'btn add-day-btn';
-      barBtn.textContent = '+';
-      barBtn.title = 'Criar novo treino';
-      barBtn.addEventListener('click', () => {
-        const newIdx = dayNodes.length;
-        // Cria um treino em branco com estrutura padrão (aquecimento, exercícios e alongamento).
-        // A função baseSix() já inclui um alongamento no final, portanto não é necessário
-        // adicionar novamente outro alongamento.
-        const exs = baseSix('Aquecimento');
-        const node = renderTrainingDay({ name: `Treino ${newIdx + 1}`, exercises: exs }, newIdx);
-        trainingsContainer.appendChild(node);
-        dayNodes.push(node);
-        // Atualiza rótulos "TREINO X" de todos os treinos após inserção
-        const items = document.querySelectorAll('.training-item');
-        items.forEach((it, idx2) => {
-          const lbl = it.querySelector('.training-label');
-          if (lbl) lbl.textContent = `TREINO ${idx2 + 1}`;
-        });
-      });
-      bar.appendChild(barText);
-      bar.appendChild(barBtn);
-      // Insere a barra antes de trainingsContainer
-      trainingsContainer.parentElement.insertBefore(bar, trainingsContainer);
+
       planDetailsEl.style.display = 'block';
       // Armazena ID do plano atualmente em edição
       planDetailsEl.dataset.currentId = plan.id;
