@@ -1,33 +1,38 @@
-name: Deploy Jekyll Site
+name: Deploy Revitalize App to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # dispara quando houver push na main
+      - main  # dispara quando você der push na branch main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Passo 1: Pegar o código do repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Ruby
+      # Passo 2: Configurar Ruby (necessário para Jekyll)
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2  # ou a versão que seu Jekyll precisa
+          ruby-version: 3.2  # versão compatível com GitHub Pages
 
-      - name: Install dependencies
+      # Passo 3: Instalar dependências do Jekyll
+      - name: Install Jekyll and Bundler
         run: |
-          gem install bundler
-          bundle install
+          gem install jekyll bundler
 
-      - name: Build Jekyll site
-        run: bundle exec jekyll build
+      # Passo 4: Build do site
+      - name: Build site
+        run: |
+          jekyll build -s revitalize_app -d _site
 
+      # Passo 5: Publicar no GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
