@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revitalize – Início</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="home">
+  <div class="overlay">
+    <!-- Barra superior com saudação e ícone de usuário -->
+    <header class="app-header">
+      <span id="greeting">Bem-Vindo, Usuário</span>
+      <button id="logoutBtn" class="icon-btn" title="Sair">
+        <!-- Ícone simples de logout (SVG) -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </header>
+    <!-- Logo grande no topo -->
+    <div class="home-logo">
+      <img src="assets/logo_full.png" alt="Revitalize Health &amp; Wellness" />
+    </div>
+    <!-- Grade de funcionalidades -->
+    <div class="features-grid">
+      <div class="feature-card" id="createPlanBtn">
+        <div class="feature-icon">🏋️‍♂️</div>
+        <div class="feature-label">Criar Plano</div>
+      </div>
+      <div class="feature-card" id="adjustPlanBtn">
+        <div class="feature-icon">⚙️</div>
+        <div class="feature-label">Ajustar Plano</div>
+      </div>
+      <div class="feature-card" id="monitoringBtn">
+        <div class="feature-icon">📊</div>
+        <div class="feature-label">Monitoramento</div>
+      </div>
+      <div class="feature-card" id="imcBtn">
+        <div class="feature-icon">📏</div>
+        <div class="feature-label">Calculadora IMC</div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
