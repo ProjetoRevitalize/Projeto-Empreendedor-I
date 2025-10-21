@@ -616,6 +616,100 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('revitalizeImcHistory', JSON.stringify(history));
   }
 
+  /**
+   * Abre uma nova janela contendo o relatório de planos com a mesma estrutura da tela
+   * de relatório. O relatório é gerado dinamicamente a partir dos planos salvos
+   * no armazenamento local. A nova janela aplica o mesmo fundo padrão da
+   * aplicação e uma camada translúcida sobreposta ao conteúdo, semelhante às
+   * demais páginas. Após a renderização, a janela de impressão é acionada.
+   */
+  function openPrintWindow() {
+    const plans = getPlans();
+    let contentHTML = '';
+    if (!plans || plans.length === 0) {
+      contentHTML = '<p>Nenhum plano cadastrado.</p>';
+    } else {
+      // Ordena os planos por ID para manter a progressão cronológica
+      const sortedPlans = plans.slice().sort((a, b) => {
+        if (!a.id || !b.id) return 0;
+        return a.id - b.id;
+      });
+      // Monta cabeçalho da tabela
+      let tableHTML = '<table style="width:100%; border-collapse:collapse; margin-top:1rem;">';
+      tableHTML += '<thead><tr>';
+      const headers = ['#', 'Objetivo', 'Nível', 'Altura (m)', 'Peso (kg)', 'IMC'];
+      headers.forEach((h) => {
+        tableHTML += `<th style="background-color:#195656;color:#FEFEFE;padding:0.5rem;text-align:left;">${h}</th>`;
+      });
+      tableHTML += '</tr></thead><tbody>';
+      const weightDiffs = [];
+      sortedPlans.forEach((plan, idx) => {
+        const hNum = plan.height ? Number(plan.height) : NaN;
+        const wNum = plan.weight ? Number(plan.weight) : NaN;
+        const hStr = !isNaN(hNum) ? hNum.toFixed(2).replace('.', ',') : '';
+        const wStr = !isNaN(wNum) ? wNum.toFixed(2).replace('.', ',') : '';
+        let imc = '';
+        if (!isNaN(hNum) && !isNaN(wNum) && hNum > 0) {
+          imc = (wNum / (hNum * hNum)).toFixed(2).replace('.', ',');
+        }
+        tableHTML += '<tr>';
+        const values = [idx + 1, plan.objective || '', plan.level || '', hStr, wStr, imc];
+        values.forEach((val) => {
+          tableHTML += `<td style="padding:0.5rem;border-bottom:1px solid #B1AFAF;">${val}</td>`;
+        });
+        tableHTML += '</tr>';
+        if (idx > 0) {
+          const prev = sortedPlans[idx - 1];
+          const prevWeight = prev.weight ? Number(prev.weight) : NaN;
+          if (!isNaN(wNum) && !isNaN(prevWeight)) {
+            weightDiffs.push(wNum - prevWeight);
+          }
+        }
+      });
+      tableHTML += '</tbody></table>';
+      // Monta resumo de variação de peso
+      let summaryHTML = '';
+      if (weightDiffs.length > 0) {
+        summaryHTML += '<div class="summary" style="margin-top:1rem;background-color:rgba(255,255,255,0.85);padding:0.8rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);width:100%;">';
+        summaryHTML += '<h3 style="margin-top:0;color:#195656;margin-bottom:0.5rem;">Resumo de Variação de Peso</h3>';
+        summaryHTML += '<ul style="list-style:none;padding-left:0;margin:0;">';
+        weightDiffs.forEach((diff, idx) => {
+          const absDiff = Math.abs(diff).toFixed(2).replace('.', ',');
+          let msg = '';
+          if (diff > 0) {
+            msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} houve ganho de ${absDiff} kg.`;
+          } else if (diff < 0) {
+            msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} houve perda de ${absDiff} kg.`;
+          } else {
+            msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} o peso permaneceu constante.`;
+          }
+          summaryHTML += `<li style="margin-bottom:0.3rem;">${msg}</li>`;
+        });
+        summaryHTML += '</ul></div>';
+      }
+      contentHTML = tableHTML + summaryHTML;
+    }
+    // Determina o caminho absoluto para a imagem de fundo
+    const basePath = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+    const backgroundPath = `${basePath}assets/background_app.png`;
+    // Cria a estrutura HTML completa para a nova janela
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório</title><style>
+      body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #373435; background: url('${backgroundPath}') no-repeat center center / cover; min-height: 100vh; }
+      .overlay { background-color: rgba(255,255,255,0.3); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+      h1 { color: #FEFEFE; margin-bottom: 1rem; }
+    </style></head><body><div class="overlay"><h1>Relatório</h1>${contentHTML}</div></body></html>`;
+    const printWin = window.open('', '_blank');
+    if (!printWin) return;
+    printWin.document.open();
+    printWin.document.write(html);
+    printWin.document.close();
+    // Espera a imagem de fundo carregar antes de chamar print
+    printWin.onload = () => {
+      printWin.focus();
+      printWin.print();
+    };
+  }
+
   /* =============================
      RF3 – MODELOS por Nível/Objetivo
      Estas estruturas definem sugestões de treinos de acordo com o
@@ -1936,6 +2030,448 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializa lista
     renderPlanList();
+  }
+
+  /* ====================
+     Página Monitoramento (monitoring.html)
+     ====================
+     Esta seção torna a tela de monitoramento interativa. Ao clicar no botão
+     "Plano de Treino" o usuário visualiza uma lista de planos salvos e pode
+     escolher um para visualização. O plano selecionado é renderizado em um
+     formato somente leitura, exibindo os dias/treinos e os exercícios
+     correspondentes com suas repetições, séries, tempo ou carga.  */
+  if (document.body.classList.contains('monitoring')) {
+    const backBtn = document.getElementById('backHomeFromMonitoring');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        // Retorna à página anterior utilizando o histórico do navegador
+        window.history.back();
+      });
+    }
+    const choosePlanBtn = document.getElementById('choosePlanBtn');
+    const planDropdown = document.getElementById('planDropdown');
+    const planView = document.getElementById('planView');
+    // Novos botões para relatório e nutrição/suplementação
+    const reportBtn = document.getElementById('reportBtn');
+    const nutritionBtn = document.getElementById('nutritionBtn');
+    // Navegação para as páginas adicionais quando os botões forem clicados
+    if (reportBtn) {
+      reportBtn.addEventListener('click', () => {
+        window.location.href = 'report.html';
+      });
+    }
+    if (nutritionBtn) {
+      nutritionBtn.addEventListener('click', () => {
+        window.location.href = 'nutrition.html';
+      });
+    }
+    // Recupera a lista de planos existentes do armazenamento local
+    const plans = getPlans();
+
+    /**
+     * Preenche o contêiner dropdown com uma lista de planos. Cada item é
+     * clicável e, quando selecionado, dispara a renderização do plano.
+     */
+    function populatePlanDropdown() {
+      if (!planDropdown) return;
+      planDropdown.innerHTML = '';
+      if (!plans || plans.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = 'Nenhum plano cadastrado.';
+        p.style.color = 'var(--dark-color)';
+        planDropdown.appendChild(p);
+        return;
+      }
+      plans.forEach((plan, index) => {
+        const item = document.createElement('div');
+        item.classList.add('plan-item');
+        // Usa o objetivo e nível como rótulo descritivo
+        const objective = plan.objective || 'Plano';
+        const level = plan.level || '';
+        let label = objective;
+        if (level) {
+          label += ` – ${level}`;
+        }
+        // Quando há mais de um plano, diferencia pelo índice
+        if (plans.length > 1) {
+          label = `Plano ${index + 1} – ${label}`;
+        }
+        item.textContent = label;
+        item.dataset.index = index;
+        item.addEventListener('click', () => {
+          showPlanDetails(index);
+          planDropdown.style.display = 'none';
+        });
+        planDropdown.appendChild(item);
+      });
+    }
+
+    /**
+     * Constrói e exibe a visualização somente leitura de um plano de treino.
+     * @param {number} index Índice do plano na lista de planos
+     */
+    function showPlanDetails(index) {
+      if (!planView) return;
+      const plan = plans[index];
+      if (!plan) return;
+      planView.innerHTML = '';
+      // Botão de fechar no canto superior direito
+      const closeBtn = document.createElement('button');
+      closeBtn.classList.add('close-plan-btn');
+      closeBtn.textContent = 'X';
+      closeBtn.addEventListener('click', () => {
+        // Oculta a visualização do plano e limpa seu conteúdo
+        planView.style.display = 'none';
+        planView.innerHTML = '';
+      });
+      planView.appendChild(closeBtn);
+
+      // Título principal do plano (objetivo)
+      const header = document.createElement('h2');
+      header.textContent = plan.objective || 'Plano de Treino';
+      planView.appendChild(header);
+      // Itera sobre cada treino/dia
+      (plan.trainings || []).forEach((training) => {
+        const trainingContainer = document.createElement('div');
+        trainingContainer.classList.add('training');
+        const title = document.createElement('h3');
+        title.textContent = training.name || 'Treino';
+        trainingContainer.appendChild(title);
+        const list = document.createElement('ul');
+        (training.exercises || []).forEach((ex) => {
+          const li = document.createElement('li');
+          const nameSpan = document.createElement('span');
+          nameSpan.classList.add('exercise-name');
+          nameSpan.textContent = ex.name || '';
+          const valueSpan = document.createElement('span');
+          valueSpan.classList.add('exercise-value');
+          // O valor pode vir no formato simples (ex.value) ou como campos separados
+          let value = '';
+          if (typeof ex.value !== 'undefined' && ex.value !== null) {
+            value = ex.value;
+          } else {
+            const parts = [];
+            if (ex.weight) parts.push(ex.weight);
+            if (ex.series) parts.push(ex.series);
+            if (ex.rep) parts.push(ex.rep);
+            if (ex.tempo) parts.push(ex.tempo);
+            value = parts.filter((p) => p && p.toString().trim()).join(' ');
+          }
+          valueSpan.textContent = value;
+          li.appendChild(nameSpan);
+          li.appendChild(valueSpan);
+          list.appendChild(li);
+        });
+        trainingContainer.appendChild(list);
+        planView.appendChild(trainingContainer);
+      });
+      // Botão de impressão ao final do plano
+      const printBtn = document.createElement('button');
+      printBtn.textContent = 'Imprimir';
+      printBtn.classList.add('btn', 'primary', 'print-btn');
+      printBtn.addEventListener('click', () => {
+        // Usa a função de impressão do navegador. As regras de mídia definidas em CSS
+        // garantem que apenas o plano seja exibido ao imprimir.
+        window.print();
+      });
+      planView.appendChild(printBtn);
+      planView.style.display = 'block';
+    }
+
+    // Ao clicar no cartão de plano, navega para a lista de planos.
+    if (choosePlanBtn) {
+      choosePlanBtn.addEventListener('click', () => {
+        window.location.href = 'plans.html';
+      });
+    }
+
+    // Botão para exportar relatório diretamente da tela de monitoramento
+    const exportReportBtnEl = document.getElementById('exportReportBtn');
+    if (exportReportBtnEl) {
+      exportReportBtnEl.addEventListener('click', () => {
+        // Abre uma nova janela com pré‑visualização do relatório e inicia a impressão
+        openPrintWindow();
+      });
+    }
+  }
+
+  /* ====================
+     Página Relatório (report.html)
+     ====================
+     Esta seção monta um relatório simples de todos os planos cadastrados pelo usuário, exibindo
+     métricas como altura, peso, objetivo e IMC calculado. Também adiciona funcionalidade
+     ao botão de voltar para retornar à tela de monitoramento. */
+  if (document.body.classList.contains('report')) {
+    const backBtnReport = document.getElementById('backToMonitoringFromReport');
+    if (backBtnReport) {
+      backBtnReport.addEventListener('click', () => {
+        window.history.back();
+      });
+    }
+    // Botão de exportação presente na página de relatório
+    const exportBtn = document.getElementById('exportReportBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        // Abre uma nova janela com pré‑visualização do relatório e inicia a impressão
+        openPrintWindow();
+      });
+    }
+    const reportEl = document.getElementById('reportContent');
+    if (reportEl) {
+      const plans = getPlans();
+      // Limpa conteúdo anterior
+      reportEl.innerHTML = '';
+      if (!plans || plans.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = 'Nenhum plano cadastrado.';
+        reportEl.appendChild(p);
+      } else {
+        // Ordena os planos por data de criação (ID) para análise de progressão de peso
+        const sortedPlans = plans.slice().sort((a, b) => {
+          // Se as IDs estiverem ausentes ou iguais, mantém a ordem original
+          if (!a.id || !b.id) return 0;
+          return a.id - b.id;
+        });
+
+        // Cria tabela com cabeçalhos
+        const table = document.createElement('table');
+        table.classList.add('report-table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        const headers = ['#', 'Objetivo', 'Nível', 'Altura (m)', 'Peso (kg)', 'IMC'];
+        headers.forEach((h) => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          th.style.padding = '0.5rem';
+          th.style.backgroundColor = 'var(--primary-color)';
+          th.style.color = 'var(--light-color)';
+          th.style.textAlign = 'left';
+          headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        // Variável para armazenar diferenças de peso entre planos
+        const weightDiffs = [];
+        sortedPlans.forEach((plan, idx) => {
+          const row = document.createElement('tr');
+          // Calcula altura e peso formatados
+          const heightNum = plan.height ? Number(plan.height) : NaN;
+          const weightNum = plan.weight ? Number(plan.weight) : NaN;
+          const heightStr = !isNaN(heightNum) ? heightNum.toFixed(2).replace('.', ',') : '';
+          const weightStr = !isNaN(weightNum) ? weightNum.toFixed(2).replace('.', ',') : '';
+          // Calcula IMC (IMC = peso / (altura^2))
+          let imc = '';
+          if (!isNaN(heightNum) && !isNaN(weightNum) && heightNum > 0) {
+            imc = (weightNum / (heightNum * heightNum)).toFixed(2).replace('.', ',');
+          }
+          const values = [idx + 1, plan.objective || '', plan.level || '', heightStr, weightStr, imc];
+          values.forEach((val) => {
+            const td = document.createElement('td');
+            td.textContent = val;
+            td.style.padding = '0.5rem';
+            td.style.borderBottom = '1px solid var(--gray-color)';
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+          // Calcula diferença de peso em relação ao plano anterior
+          if (idx > 0) {
+            const prev = sortedPlans[idx - 1];
+            const prevWeight = prev.weight ? Number(prev.weight) : NaN;
+            if (!isNaN(weightNum) && !isNaN(prevWeight)) {
+              weightDiffs.push(weightNum - prevWeight);
+            }
+          }
+        });
+        table.appendChild(tbody);
+        reportEl.appendChild(table);
+
+        // Gera um resumo sobre ganho ou perda de peso entre os planos
+        if (weightDiffs.length > 0) {
+          const summary = document.createElement('div');
+          summary.style.marginTop = '1rem';
+          summary.style.backgroundColor = 'rgba(255,255,255,0.85)';
+          summary.style.padding = '0.8rem';
+          summary.style.borderRadius = '6px';
+          summary.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          const summaryTitle = document.createElement('h3');
+          summaryTitle.textContent = 'Resumo de Variação de Peso';
+          summaryTitle.style.color = 'var(--primary-color)';
+          summaryTitle.style.marginBottom = '0.5rem';
+          summary.appendChild(summaryTitle);
+          const list = document.createElement('ul');
+          list.style.listStyle = 'none';
+          list.style.paddingLeft = '0';
+          weightDiffs.forEach((diff, idx) => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '0.3rem';
+            let msg = '';
+            const absDiff = Math.abs(diff).toFixed(2).replace('.', ',');
+            if (diff > 0) {
+              msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} houve ganho de ${absDiff} kg.`;
+            } else if (diff < 0) {
+              msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} houve perda de ${absDiff} kg.`;
+            } else {
+              msg = `Entre o Plano ${idx + 1} e o Plano ${idx + 2} o peso permaneceu constante.`;
+            }
+            li.textContent = msg;
+            list.appendChild(li);
+          });
+          summary.appendChild(list);
+          reportEl.appendChild(summary);
+        }
+      }
+    }
+    // Se a query string export=true estiver presente, aciona impressão após renderizar o relatório
+    const paramsReport = new URLSearchParams(window.location.search);
+    if (paramsReport.get('export') === 'true') {
+      // pequena espera para garantir que o conteúdo foi inserido antes de imprimir
+      setTimeout(() => {
+        openPrintWindow();
+      }, 300);
+    }
+  }
+
+  /* ====================
+     Página Nutrição e Suplementação (nutrition.html)
+     ====================
+     Esta seção apenas adiciona funcionalidade ao botão de voltar para que o usuário
+     retorne à tela de monitoramento quando desejar sair da página de nutrição. */
+  if (document.body.classList.contains('nutrition')) {
+    const backBtnNutrition = document.getElementById('backToMonitoringFromNutrition');
+    if (backBtnNutrition) {
+      backBtnNutrition.addEventListener('click', () => {
+        window.history.back();
+      });
+    }
+  }
+
+  /* ====================
+     Página de listagem de planos (plans.html)
+     ====================
+     Esta página apresenta todos os planos cadastrados pelo usuário em formato de lista.
+     Cada item da lista é clicável e abre uma página de visualização somente leitura
+     (view_plan.html) passando o índice do plano via query string. */
+  if (document.body.classList.contains('plans')) {
+    const backBtnPlans = document.getElementById('backToMonitoringFromPlans');
+    if (backBtnPlans) {
+      backBtnPlans.addEventListener('click', () => {
+        // Retorna à tela de monitoramento
+        window.history.back();
+      });
+    }
+    const listEl = document.getElementById('plansList');
+    if (listEl) {
+      const plans = getPlans();
+      listEl.innerHTML = '';
+      if (!plans || plans.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = 'Nenhum plano cadastrado.';
+        p.style.color = 'var(--dark-color)';
+        listEl.appendChild(p);
+      } else {
+        plans.forEach((plan, idx) => {
+          const item = document.createElement('div');
+          item.classList.add('plan-item');
+          // Define um rótulo descritivo com objetivo e nível
+          const objective = plan.objective || 'Plano';
+          const level = plan.level || '';
+          let label = objective;
+          if (level) {
+            label += ` – ${level}`;
+          }
+          if (plans.length > 1) {
+            label = `Plano ${idx + 1} – ${label}`;
+          }
+          item.textContent = label;
+          item.style.cursor = 'pointer';
+          item.addEventListener('click', () => {
+            // Navega para a página de visualização passando o índice na query string
+            window.location.href = `view_plan.html?id=${idx}`;
+          });
+          listEl.appendChild(item);
+        });
+      }
+    }
+  }
+
+  /* ====================
+     Página de visualização de um plano específico (view_plan.html)
+     ====================
+     Esta página carrega um plano existente a partir do índice recebido pela
+     query string e exibe seus detalhes em modo somente leitura. */
+  if (document.body.classList.contains('plan-view-page')) {
+    const backBtnView = document.getElementById('backToPlans');
+    if (backBtnView) {
+      backBtnView.addEventListener('click', () => {
+        window.history.back();
+      });
+    }
+    // Recupera índice do plano a partir da query string
+    const paramsView = new URLSearchParams(window.location.search);
+    const idParam = paramsView.get('id');
+    const index = idParam ? parseInt(idParam, 10) : NaN;
+    const plans = getPlans();
+    const container = document.getElementById('selectedPlanView');
+    if (container) {
+      container.innerHTML = '';
+      if (isNaN(index) || !plans || !plans[index]) {
+        const p = document.createElement('p');
+        p.textContent = 'Plano não encontrado.';
+        p.style.color = 'var(--dark-color)';
+        container.appendChild(p);
+      } else {
+        const plan = plans[index];
+        // Título principal
+        const header = document.createElement('h2');
+        header.textContent = plan.objective || 'Plano de Treino';
+        container.appendChild(header);
+        // Renderiza cada treino/dia
+        (plan.trainings || []).forEach((training) => {
+          const trainingContainer = document.createElement('div');
+          trainingContainer.classList.add('training');
+          const title = document.createElement('h3');
+          title.textContent = training.name || 'Treino';
+          trainingContainer.appendChild(title);
+          const list = document.createElement('ul');
+          (training.exercises || []).forEach((ex) => {
+            const li = document.createElement('li');
+            const nameSpan = document.createElement('span');
+            nameSpan.classList.add('exercise-name');
+            nameSpan.textContent = ex.name || '';
+            const valueSpan = document.createElement('span');
+            valueSpan.classList.add('exercise-value');
+            let value = '';
+            if (typeof ex.value !== 'undefined' && ex.value !== null) {
+              value = ex.value;
+            } else {
+              const parts = [];
+              if (ex.weight) parts.push(ex.weight);
+              if (ex.series) parts.push(ex.series);
+              if (ex.rep) parts.push(ex.rep);
+              if (ex.tempo) parts.push(ex.tempo);
+              value = parts.filter((p) => p && p.toString().trim()).join(' ');
+            }
+            valueSpan.textContent = value;
+            li.appendChild(nameSpan);
+            li.appendChild(valueSpan);
+            list.appendChild(li);
+          });
+          trainingContainer.appendChild(list);
+          container.appendChild(trainingContainer);
+        });
+        // Botão de impressão no final da página
+        const printBtn = document.createElement('button');
+        printBtn.textContent = 'Imprimir';
+        printBtn.classList.add('btn', 'primary', 'print-btn');
+        printBtn.addEventListener('click', () => {
+          window.print();
+        });
+        container.appendChild(printBtn);
+      }
+    }
   }
 
 });

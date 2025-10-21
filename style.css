@@ -40,6 +40,96 @@ body.imc {
   background: url('assets/background_app.png') no-repeat center center / cover;
 }
 
+/*
+ * As páginas que listam planos, visualizam um plano específico, exibem o relatório
+ * ou mostram informações de nutrição e suplementação originalmente não
+ * possuíam um fundo personalizado. Para manter a consistência visual da
+ * aplicação, usamos o mesmo background da tela de monitoramento (background_app.png).
+ */
+body.plans,
+body.plan-view-page,
+body.report,
+body.nutrition {
+  background: url('assets/background_app.png') no-repeat center center / cover;
+}
+
+/*
+ * Estilização da lista de planos na página plans.html. Cada item da lista
+ * é apresentado como um botão largo de cor verde escuro seguindo a paleta de
+ * cores da aplicação. Ao passar o mouse, a cor fica um pouco mais escura
+ * para indicar interatividade. A lista em si é uma coluna vertical com
+ * espaçamento constante entre os itens.
+ */
+body.plans .plans-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 1rem auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+body.plans .plan-item {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+body.plans .plan-item:hover {
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+/*
+ * Corrige a largura do conteúdo de visualização de um plano específico na página
+ * view_plan.html. As informações do plano são exibidas com fundo translúcido
+ * para contraste com o background da aplicação. Também centraliza o bloco
+ * gerado dinamicamente pelo script.
+ */
+body.plan-view-page #selectedPlanView {
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+}
+
+body.plan-view-page #selectedPlanView h2,
+body.plan-view-page #selectedPlanView h3 {
+  color: var(--primary-color);
+}
+
+body.plan-view-page #selectedPlanView ul {
+  list-style: none;
+  padding: 0;
+}
+
+body.plan-view-page #selectedPlanView li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+body.plan-view-page #selectedPlanView li:last-child {
+  border-bottom: none;
+}
+
+body.plan-view-page #selectedPlanView .print-btn {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 200px;
+  align-self: center;
+}
+
 #resetModal {
   display: none;
   justify-content: center;
@@ -637,4 +727,339 @@ body.plan select {
 }
 .add-training-bar .btn:hover {
   color: var(--primary-color);
+}
+
+/* ====================
+   Estilos da tela de monitoramento (monitoring.html)
+   ====================
+   A tela de monitoramento permite que o usuário selecione um plano de treino existente
+   e visualize os treinos e exercícios de forma estática. Estes estilos definem a
+   apresentação da lista de planos e dos detalhes de cada plano. */
+
+/* Contêiner da lista de planos. Aparece abaixo do botão "Plano de Treino" quando clicado */
+.plan-dropdown {
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Cada item de plano dentro da lista. Exibe o nome do plano e responde ao hover */
+.plan-dropdown .plan-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--gray-color);
+  cursor: pointer;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.plan-dropdown .plan-item:last-child {
+  border-bottom: none;
+}
+
+.plan-dropdown .plan-item:hover {
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+}
+
+/* Contêiner que exibe os detalhes de um plano de treino selecionado */
+.plan-view {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  /* Permite que elementos posicionados absolutamente (como o botão de fechar) sejam alinhados em relação ao contêiner */
+  position: relative;
+}
+
+/* Título do plano de treino dentro da visualização */
+.plan-view h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.3rem;
+}
+
+/* Título de cada treino (dia) */
+.plan-view h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+/* Wrapper para cada dia/treino */
+.plan-view .training {
+  margin-bottom: 1rem;
+}
+
+/* Lista de exercícios dentro de um treino */
+.plan-view ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cada exercício possui nome e valor alinhados em duas colunas flexíveis */
+.plan-view li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+.plan-view li:last-child {
+  border-bottom: none;
+}
+
+/* Nome do exercício */
+.plan-view .exercise-name {
+  font-weight: 500;
+  color: var(--dark-color);
+}
+
+/* Valor do exercício (séries, repetições, tempo ou carga) */
+.plan-view .exercise-value {
+  color: var(--dark-color);
+  margin-left: 1rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ====================
+   Estilos adicionais para a tela de monitoramento
+   ==================== */
+
+/* Container que agrupa os botões principais da tela de monitoramento */
+.monitor-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1rem;
+}
+
+/* Em telas maiores, alinha os botões lado a lado */
+@media (min-width: 500px) {
+  .monitor-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .monitor-buttons .btn {
+    flex: 1;
+    margin-top: 0;
+  }
+}
+
+/* Botão circular utilizado para fechar a visualização de um plano de treino */
+.close-plan-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #ff5757; /* vermelho chamativo para indicar fechamento */
+  color: #000; /* texto preto conforme especificado */
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajusta o botão de impressão para ocupar toda a largura disponível e separá-lo do conteúdo */
+.plan-view .print-btn {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Estilo de impressão: exibe apenas o plano selecionado ao imprimir */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .plan-view, .plan-view * {
+    visibility: visible;
+  }
+  .plan-view {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: none;
+  }
+}
+
+/* ====================
+   Grade e cartões da tela de monitoramento (novo layout)
+   ==================== */
+.monitor-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 500px) {
+  .monitor-grid {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.monitor-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  /* Aumenta o tamanho máximo dos cartões na tela de monitoramento para se aproximar do design de referência */
+  max-width: 260px;
+}
+
+.monitor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.monitor-card .monitor-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.5rem;
+}
+
+.monitor-card .monitor-label {
+  font-weight: 600;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+/* Botão para exportar relatório na tela de monitoramento */
+.export-report-btn {
+  margin-top: 1rem;
+  max-width: 200px;
+  align-self: center;
+}
+
+/* ====================
+   Layout personalizado da página de nutrição
+   ==================== */
+.nutrition-card {
+  width: 100%;
+  max-width: 700px;
+  /* Fundo levemente translúcido para que o cartão externo se destaque do interno */
+  background-color: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nutrition-card h1 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+/* Botão de voltar na página de nutrição */
+body.nutrition .icon-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.nutrition-inner {
+  width: 100%;
+  max-width: 600px;
+  /* Fundo sólido para o cartão interno de conteúdo */
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--dark-color);
+}
+
+/* ====================
+   Estilos adicionais para a listagem de planos (plans.html)
+   ==================== */
+.plans-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.plans-list .plan-item {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  color: var(--dark-color);
+  transition: background-color 0.2s ease;
+}
+
+.plans-list .plan-item:hover {
+  background-color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+}
+
+/* ====================
+   Estilos para a página de relatório
+   ==================== */
+.report-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.report-content th,
+.report-content td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.9rem;
+}
+.report-content th {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+  text-align: left;
+}
+.report-content tr:nth-child(even) td {
+  background-color: rgba(0, 0, 0, 0.03);
 }
