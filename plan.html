@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revitalize – Criar Plano</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="plan">
+  <div class="overlay">
+    <header class="app-header">
+      <button id="backHomeFromPlan" class="icon-btn" title="Voltar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h1>Criar Plano</h1>
+    </header>
+    <form id="planForm" class="form-container">
+      <div class="input-group">
+        <label for="altura">Altura (m)</label>
+        <input type="text" id="altura" name="altura" step="0.01" min="1" maxlength="4" placeholder="Ex: 1,70" autocomplete="off" required />
+      </div>
+      <div class="input-group">
+        <label for="peso">Peso (kg)</label>
+        <input type="text" id="peso" name="peso" min="1" maxlength="3" placeholder="Ex: 75" autocomplete="off" required />
+      </div>
+      <div class="input-group">
+        <label for="objetivo">Objetivo</label>
+        <select id="objetivo" name="objetivo" required>
+          <option value="">Selecione...</option>
+          <option value="Perda de Peso">Perda de Peso</option>
+          <option value="Ganho de Massa">Ganho de Massa</option>
+          <option value="Manutenção">Manutenção</option>
+        </select>
+      </div>
+      <p id="planError" class="error-message"></p>
+      <button type="submit" class="btn primary">Salvar Plano</button>
+    </form>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>

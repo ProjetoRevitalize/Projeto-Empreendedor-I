@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revitalize – Ajustar Plano</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="adjust">
+  <div class="overlay">
+    <!-- Cabeçalho com botão de voltar e título -->
+    <header class="app-header">
+      <button id="backHomeFromAdjust" class="icon-btn" title="Voltar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <h1>Ajustar Plano</h1>
+    </header>
+    <!-- Lista de planos disponíveis -->
+    <div id="planList" class="plan-list"></div>
+    <!-- Área de detalhes e edição do plano selecionado -->
+    <div id="planDetails" class="plan-details" style="display:none;">
+      <h4 id="planNameTitle"></h4>
+      <form id="adjustForm">
+        <div class="input-group">
+          <label for="adjustAltura">Altura (m)</label>
+          <input type="number" id="adjustAltura" step="0.01" min="0" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <label for="adjustPeso">Peso (kg)</label>
+          <input type="number" id="adjustPeso" step="0.1" min="0" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <label for="adjustObjetivo">Objetivo</label>
+          <select id="adjustObjetivo">
+            <option value="Perda de Peso">Perda de Peso</option>
+            <option value="Ganho de Massa">Ganho de Massa</option>
+            <option value="Manutenção">Manutenção</option>
+          </select>
+        </div>
+        <!-- Container dinâmico para treinos e exercícios -->
+        <div id="trainingsContainer"></div>
+        <div class="adjust-buttons">
+          <button type="button" id="cancelAdjust" class="btn">Cancelar</button>
+          <button type="submit" id="saveAdjust" class="btn primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

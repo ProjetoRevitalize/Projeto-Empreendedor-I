@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revitalize – Planos de Treino</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="plans">
+  <div class="overlay">
+    <!-- Cabeçalho com botão de voltar e título -->
+    <header class="app-header">
+      <button id="backToMonitoringFromPlans" class="icon-btn" title="Voltar">
+        <!-- Ícone de seta para a esquerda -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <h1>Planos de Treino</h1>
+    </header>
+    <!-- Lista de planos será gerada via JavaScript -->
+    <div id="plansList" class="plans-list"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
