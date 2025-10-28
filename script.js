@@ -1,4 +1,4 @@
-/*-------------------Unidade 1-------------------*/
+/*-------------------Unidade 2-------------------*/
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -667,6 +667,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       tableHTML += '</tbody></table>';
+
+// Calcula diferença de carga entre planos
+const loadDiffs = [];
+sortedPlans.forEach((plan, planIndex) => {
+  if (planIndex > 0) {
+    const prevPlan = sortedPlans[planIndex - 1];
+    (plan.trainings || []).forEach((training, tIdx) => {
+      const prevTraining = prevPlan.trainings ? prevPlan.trainings[tIdx] : null;
+      (training.exercises || []).forEach((ex, eIdx) => {
+        const currStr = ex.weight ? ex.weight.toString().trim() : '';
+        const prevStr = prevTraining && prevTraining.exercises ? (prevTraining.exercises[eIdx]?.weight || '').toString().trim() : '';
+        const currW = parseFloat(currStr.replace(',', '.'));
+        const prevW = parseFloat(prevStr.replace(',', '.'));
+        if (!isNaN(currW) && !isNaN(prevW) && currW !== prevW) {
+          loadDiffs.push({
+            from: planIndex,
+            to: planIndex + 1,
+            day: tIdx + 1,
+            exercise: ex.name || `Exercício ${eIdx + 1}`,
+            diff: currW - prevW
+          });
+        }
+      });
+    });
+  }
+});
       // Monta resumo de variação de peso
       let summaryHTML = '';
       if (weightDiffs.length > 0) {
@@ -687,7 +713,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         summaryHTML += '</ul></div>';
       }
-      contentHTML = tableHTML + summaryHTML;
+      
+// Monta resumo de progressão de carga
+let loadHTML = '';
+if (sortedPlans.length > 1) {
+  if (loadDiffs.length > 0) {
+    loadHTML += '<div class="summary" style="margin-top:1rem;background-color:rgba(255,255,255,0.85);padding:0.8rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);width:100%;">';
+    loadHTML += '<h3 style="margin-top:0;color:#195656;margin-bottom:0.5rem;">Resumo de Progressão de Carga</h3>';
+    loadHTML += '<ul style="list-style:none;padding-left:0;margin:0;">';
+    loadDiffs.forEach((item) => {
+      const absDiff = Math.abs(item.diff).toFixed(1).replace('.', ',');
+      let msg = '';
+      if (item.diff > 0) {
+        msg = `Entre o Plano ${item.from} e o Plano ${item.to}, no Treino ${item.day} – ${item.exercise} houve aumento de ${absDiff} kg.`;
+      } else {
+        msg = `Entre o Plano ${item.from} e o Plano ${item.to}, no Treino ${item.day} – ${item.exercise} houve redução de ${absDiff} kg.`;
+      }
+      loadHTML += `<li style="margin-bottom:0.3rem;">${msg}</li>`;
+    });
+    loadHTML += '</ul></div>';
+  } else {
+    loadHTML += '<div class="summary" style="margin-top:1rem;background-color:rgba(255,255,255,0.85);padding:0.8rem;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);width:100%;"><ul style="list-style:none;padding-left:0;margin:0;"><li>As cargas registradas permaneceram constantes entre os planos.</li></ul></div>';
+  }
+}
+summaryHTML += loadHTML;
+
+contentHTML = tableHTML + summaryHTML;
     }
     // Determina o caminho absoluto para a imagem de fundo
     const basePath = location.href.substring(0, location.href.lastIndexOf('/') + 1);
@@ -2321,6 +2372,72 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           summary.appendChild(list);
           reportEl.appendChild(summary);
+
+// ==== Resumo de progressão de carga ====
+const loadDiffs = [];
+sortedPlans.forEach((plan, planIndex) => {
+  if (planIndex > 0) {
+    const prevPlan = sortedPlans[planIndex - 1];
+    (plan.trainings || []).forEach((training, tIdx) => {
+      const prevTraining = prevPlan.trainings ? prevPlan.trainings[tIdx] : null;
+      (training.exercises || []).forEach((ex, eIdx) => {
+        const currStr = ex.weight ? ex.weight.toString().trim() : '';
+        const prevStr = prevTraining && prevTraining.exercises ? (prevTraining.exercises[eIdx]?.weight || '').toString().trim() : '';
+        const currW = parseFloat(currStr.replace(',', '.'));
+        const prevW = parseFloat(prevStr.replace(',', '.'));
+        if (!isNaN(currW) && !isNaN(prevW) && currW !== prevW) {
+          loadDiffs.push({
+            from: planIndex,
+            to: planIndex + 1,
+            day: tIdx + 1,
+            exercise: ex.name || `Exercício ${eIdx + 1}`,
+            diff: currW - prevW
+          });
+        }
+      });
+    });
+  }
+});
+const loadSummary = document.createElement('div');
+loadSummary.style.marginTop = '1rem';
+loadSummary.style.backgroundColor = 'rgba(255,255,255,0.85)';
+loadSummary.style.padding = '0.8rem';
+loadSummary.style.borderRadius = '6px';
+loadSummary.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+const loadTitle = document.createElement('h3');
+loadTitle.textContent = 'Resumo de Progressão de Carga';
+loadTitle.style.color = 'var(--primary-color)';
+loadTitle.style.marginBottom = '0.5rem';
+loadSummary.appendChild(loadTitle);
+const loadList = document.createElement('ul');
+loadList.style.listStyle = 'none';
+loadList.style.paddingLeft = '0';
+if (loadDiffs.length > 0) {
+  loadDiffs.forEach((item) => {
+    const li = document.createElement('li');
+    li.style.marginBottom = '0.3rem';
+    const absDiff = Math.abs(item.diff).toFixed(1).replace('.', ',');
+    let msg = '';
+    if (item.diff > 0) {
+      msg = `Entre o Plano ${item.from} e o Plano ${item.to}, no Treino ${item.day} – ${item.exercise}, houve aumento de ${absDiff} kg.`;
+    } else {
+      msg = `Entre o Plano ${item.from} e o Plano ${item.to}, no Treino ${item.day} – ${item.exercise}, houve redução de ${absDiff} kg.`;
+    }
+    li.textContent = msg;
+    loadList.appendChild(li);
+  });
+} else if (sortedPlans.length > 1) {
+  const li = document.createElement('li');
+  li.textContent = 'As cargas registradas permaneceram constantes entre os planos.';
+  loadList.appendChild(li);
+} else {
+  const li = document.createElement('li');
+  li.textContent = 'Cadastre mais de um plano para acompanhar a progressão de carga.';
+  loadList.appendChild(li);
+}
+loadSummary.appendChild(loadList);
+reportEl.appendChild(loadSummary);
+
         }
       }
     }
@@ -2471,6 +2588,167 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         container.appendChild(printBtn);
       }
+    }
+  }
+
+  /* ====================
+     Página Calculadora IMC (imc.html)
+     ====================
+     Permite calcular o IMC informando peso e altura, exibe o resultado
+     e a classificação e armazena cada cálculo no histórico. Também
+     exibe o histórico a pedido do usuário.
+  */
+  if (document.body.classList.contains('imc')) {
+    const backBtn = document.getElementById('backHomeFromImc');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        window.history.back();
+      });
+    }
+    const pesoInput = document.getElementById('pesoImc');
+    const alturaInput = document.getElementById('alturaImc');
+    const idadeInput = document.getElementById('idadeImc');
+    const sexoInputs = document.querySelectorAll('input[name="sexoImc"]');
+    const calcularBtn = document.getElementById('calcularImcBtn');
+    const historyBtn = document.getElementById('imcHistoryBtn');
+    const limparBtn = document.getElementById('limparImcBtn');
+    const resultEl = document.getElementById('imcResult');
+    const errorEl = document.getElementById('imcError');
+
+    // Função que realiza o cálculo e classificação do IMC
+    function calcularImc() {
+      const peso = parseFloat(pesoInput.value);
+      const altura = parseFloat(alturaInput.value);
+      const idade = idadeInput ? parseInt(idadeInput.value, 10) : null;
+      let sexo = null;
+      sexoInputs.forEach((input) => {
+        if (input.checked) sexo = input.value;
+      });
+      errorEl.textContent = '';
+      resultEl.textContent = '';
+      // Valida peso e altura como números positivos
+      if (!peso || peso <= 0) {
+        errorEl.textContent = 'No campo "Peso", utilize apenas caracteres numéricos positivos com duas casas decimais.';
+        return;
+      }
+      if (!altura || altura <= 0) {
+        errorEl.textContent = 'No campo "Altura", utilize apenas caracteres numéricos positivos com duas casas decimais.';
+        return;
+      }
+      // Valida idade, se fornecida, como número inteiro positivo
+      if (idadeInput && idadeInput.value && (isNaN(idade) || idade <= 0)) {
+        errorEl.textContent = 'No campo "Idade", utilize apenas caracteres numéricos inteiros positivos.';
+        return;
+      }
+      // Calcula o IMC e classifica conforme faixas padrão
+      const imc = peso / (altura * altura);
+      const imcFixed = parseFloat(imc.toFixed(1));
+      let classificacao = '';
+      if (imcFixed < 18.5) {
+        classificacao = 'Abaixo do peso';
+      } else if (imcFixed < 25) {
+        classificacao = 'Peso normal';
+      } else if (imcFixed < 30) {
+        classificacao = 'Sobrepeso';
+      } else if (imcFixed < 35) {
+        classificacao = 'Obesidade Grau I';
+      } else if (imcFixed < 40) {
+        classificacao = 'Obesidade Grau II';
+      } else {
+        classificacao = 'Obesidade Grau III';
+      }
+      resultEl.textContent = `Seu IMC é: ${imcFixed}  —  ${classificacao}`;
+      // Persiste no histórico local ou via API
+      if (USE_API) {
+        const userStr = sessionStorage.getItem('currentUser');
+        const userObj = userStr ? JSON.parse(userStr) : null;
+        if (userObj && userObj.id) {
+          apiAddImcEntry({
+            user_id: userObj.id,
+            peso,
+            altura,
+            idade: idade || null,
+            sexo: sexo || null,
+            valor: imcFixed,
+            classificacao,
+          }).catch((err) => {
+            console.error('Erro ao salvar IMC no servidor', err);
+          });
+        }
+      } else {
+        const history = getImcHistory();
+        history.push({
+          date: new Date().toLocaleString(),
+          peso,
+          altura,
+          idade: idade || null,
+          sexo: sexo || null,
+          valor: imcFixed,
+          classificacao,
+        });
+        saveImcHistory(history);
+      }
+    }
+    if (calcularBtn) {
+      calcularBtn.addEventListener('click', () => {
+        calcularImc();
+      });
+    }
+    if (historyBtn) {
+      historyBtn.addEventListener('click', () => {
+        if (USE_API) {
+          const userStr = sessionStorage.getItem('currentUser');
+          const userObj = userStr ? JSON.parse(userStr) : null;
+          if (!userObj || !userObj.id) {
+            alert('Nenhum usuário logado.');
+            return;
+          }
+          apiGetImcHistory(userObj.id)
+            .then((history) => {
+              if (!history || history.length === 0) {
+                alert('Nenhum cálculo de IMC foi realizado ainda.');
+                return;
+              }
+              let message = 'Histórico de IMC\n\n';
+              history.forEach((entry, index) => {
+                let line = `${index + 1}. ${new Date(entry.date).toLocaleString()} - IMC: ${entry.valor} (${entry.classificacao})`;
+                if (entry.idade) line += ` - Idade: ${entry.idade}`;
+                if (entry.sexo) line += ` - Sexo: ${entry.sexo}`;
+                message += line + '\n';
+              });
+              alert(message);
+            })
+            .catch((err) => {
+              alert('Erro ao obter histórico: ' + err.message);
+            });
+        } else {
+          const history = getImcHistory();
+          if (history.length === 0) {
+            alert('Nenhum cálculo de IMC foi realizado ainda.');
+            return;
+          }
+          let message = 'Histórico de IMC\n\n';
+          history.forEach((entry, index) => {
+            let line = `${index + 1}. ${entry.date} - IMC: ${entry.valor} (${entry.classificacao})`;
+            if (entry.idade) line += ` - Idade: ${entry.idade}`;
+            if (entry.sexo) line += ` - Sexo: ${entry.sexo}`;
+            message += line + '\n';
+          });
+          alert(message);
+        }
+      });
+    }
+    if (limparBtn) {
+      limparBtn.addEventListener('click', () => {
+        pesoInput.value = '';
+        alturaInput.value = '';
+        if (idadeInput) idadeInput.value = '';
+        sexoInputs.forEach((input) => {
+          input.checked = false;
+        });
+        resultEl.textContent = '';
+        errorEl.textContent = '';
+      });
     }
   }
 
