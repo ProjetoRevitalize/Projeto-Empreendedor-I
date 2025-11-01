@@ -1,0 +1,1120 @@
+/* Paleta de cores principal */
+:root {
+  --primary-color: #195656;
+  --secondary-color: #285537;
+  --accent-color: #54EAF0;
+  --light-color: #FEFEFE;
+  --gray-color: #B1AFAF;
+  --dark-color: #373435;
+  --error-color: #C0392B;
+}
+
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--dark-color);
+  min-height: 100vh;
+}
+
+/* Fundos específicos para cada página */
+body.register {
+  background: url('assets/background_login.png') no-repeat center center / cover;
+}
+
+body.login,
+body.register {
+  background: url('assets/background_login.png') no-repeat center center / cover;
+}
+
+body.home,
+body.plan,
+body.adjust,
+body.monitoring,
+body.imc {
+  background: url('assets/background_app.png') no-repeat center center / cover;
+}
+
+/*
+ * As páginas que listam planos, visualizam um plano específico, exibem o relatório
+ * ou mostram informações de nutrição e suplementação originalmente não
+ * possuíam um fundo personalizado. Para manter a consistência visual da
+ * aplicação, usamos o mesmo background da tela de monitoramento (background_app.png).
+ */
+body.plans,
+body.plan-view-page,
+body.report,
+body.nutrition {
+  background: url('assets/background_app.png') no-repeat center center / cover;
+}
+
+/*
+ * Estilização da lista de planos na página plans.html. Cada item da lista
+ * é apresentado como um botão largo de cor verde escuro seguindo a paleta de
+ * cores da aplicação. Ao passar o mouse, a cor fica um pouco mais escura
+ * para indicar interatividade. A lista em si é uma coluna vertical com
+ * espaçamento constante entre os itens.
+ */
+body.plans .plans-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 1rem auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+body.plans .plan-item {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+body.plans .plan-item:hover {
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+/*
+ * Corrige a largura do conteúdo de visualização de um plano específico na página
+ * view_plan.html. As informações do plano são exibidas com fundo translúcido
+ * para contraste com o background da aplicação. Também centraliza o bloco
+ * gerado dinamicamente pelo script.
+ */
+body.plan-view-page #selectedPlanView {
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+}
+
+body.plan-view-page #selectedPlanView h2,
+body.plan-view-page #selectedPlanView h3 {
+  color: var(--primary-color);
+}
+
+body.plan-view-page #selectedPlanView ul {
+  list-style: none;
+  padding: 0;
+}
+
+body.plan-view-page #selectedPlanView li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+body.plan-view-page #selectedPlanView li:last-child {
+  border-bottom: none;
+}
+
+body.plan-view-page #selectedPlanView .print-btn {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 200px;
+  align-self: center;
+}
+
+#resetModal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Camada de sobreposição que centraliza o conteúdo */
+.overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Área da marca */
+.logo-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.logo-text {
+  width: 200px;
+  height: auto;
+}
+
+/* Estilo do formulário */
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-container h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--dark-color);
+}
+
+.input-group input[type='text'],
+.input-group input[type='number'],
+.input-group input[type='email'],
+.input-group input[type='password'] {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(25, 86, 86, 0.2);
+}
+
+/* Estilo do grupo de rádio */
+.radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.radio-group input {
+  margin-right: 0.3rem;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Botões */
+.btn {
+  width: 100%;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.btn.primary {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+}
+
+.btn.primary:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Links */
+.link {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.link a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.link a:hover {
+  text-decoration: underline;
+}
+
+/* Mensagens de erro */
+.error-message {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.7rem;
+  white-space: pre-line;
+}
+
+/* Modal de verificação */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--light-color);
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 350px;
+  width: 85%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* Estilos da tela Home */
+body.home .app-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  /* com margin-left:auto no botão, ele vai pra direita */
+}
+
+body.home .app-header #greeting {
+  order: 1;
+}
+
+body.home .app-header #logoutBtn {
+  order: 2;
+  margin-left: auto !important;
+  position: static !important;
+  inset: auto !important;
+}
+
+body.home .overlay {
+  justify-content: flex-start;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 1rem auto;
+  padding: 0.5rem 0;
+  color: var(--light-color);
+  font-weight: bold;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.home-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.home-logo img {
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.feature-card {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.feature-label {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Estilos da criação de plano */
+
+body.plan .app-header .icon-btn {
+  margin-left: auto;
+}
+
+.app-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 1rem;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.app-header .icon-btn {
+  position: absolute;
+  left: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+body.plan .form-container {
+  max-width: 450px;
+}
+
+body.plan select {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+/* ====================
+   Estilos da tela de ajustes (adjust.html)
+   ====================
+   A lista de planos utiliza cartões empilhados com botões de editar
+   e deletar. Ao selecionar um plano, é exibido um painel com seus
+   detalhes e campos para ajuste. */
+
+.plan-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.plan-item {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plan-item h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.plan-actions button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.plan-actions .edit-btn {
+  background-color: var(--secondary-color);
+  color: var(--light-color);
+}
+
+.plan-actions .delete-btn {
+  background-color: var(--error-color);
+  color: var(--light-color);
+}
+
+.plan-details {
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.plan-details h4 {
+  margin-bottom: 0.8rem;
+  color: var(--primary-color);
+}
+
+.exercise-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.exercise-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+.exercise-list li:last-child {
+  border-bottom: none;
+}
+
+/* Itens de treino dentro dos ajustes */
+.training-item {
+  margin-bottom: 1rem;
+}
+
+.training-name {
+  /* O campo de nome do treino ocupa o espaço disponível no cabeçalho. */
+  flex: 1;
+  margin-bottom: 0.3rem;
+  padding: 0.3rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.adjust-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.adjust-buttons .btn {
+  width: auto;
+  padding: 0.6rem 1rem;
+}
+
+/* ====================================================================
+   Estilos adicionais para Ajustes de Plano (RF4)
+   Estes estilos configuram o cabeçalho de cada treino, os campos de
+   exercícios, a barra para adicionar novo treino e os botões de
+   adicionar/excluir, seguindo o layout de referência fornecido pelo
+   usuário. A prioridade é a legibilidade e a organização dos itens
+   dentro da página de ajustes.
+==================================================================== */
+
+/* Cabeçalho de cada treino: exibe "TREINO X", campo editável para o nome
+   do treino e botão para excluir o dia inteiro */
+.training-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: nowrap;
+}
+
+.training-label {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+/* O campo de nome do treino herda de .training-name, mas aqui reforçamos
+   que ele use todo o espaço disponível no cabeçalho */
+.training-name {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Botão para deletar todo o treino (dia) */
+.del-day-btn {
+  background: none;
+  border: none;
+  color: var(--error-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Botão para adicionar novo treino (dia) */
+.add-day-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.add-day-btn:hover {
+  color: var(--secondary-color);
+}
+
+/* Lista de exercícios dentro de um treino */
+.exercise-list {
+  margin-bottom: 0.4rem;
+}
+
+/* Linha de exercício: nome, valor e botão para remover o exercício */
+/* Estilo da tabela de exercícios */
+.exercise-table {
+  width: 100%;
+  margin-bottom: 0.6rem;
+}
+
+/* Cada linha da tabela utiliza grade para alinhar colunas */
+/* As colunas têm larguras fixas para garantir alinhamento com o cabeçalho */
+.exercise-row {
+  display: grid;
+  /* A primeira coluna (nome) usa 2fr para ocupar mais espaço.
+     As quatro colunas seguintes (peso, séries, repetições, tempo) usam 1fr cada.
+     As duas últimas colunas têm largura fixa para comportar os botões de ação. */
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 28px 28px;
+  gap: 0.4rem;
+  /* Alinha os itens verticalmente ao topo para permitir que o campo de nome expanda a linha ao crescer */
+  align-items: flex-start;
+  margin-bottom: 0.3rem;
+}
+
+/* Cabeçalho da tabela */
+.exercise-row.header {
+  font-weight: bold;
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+  padding: 0.3rem 0.2rem;
+  border-radius: 4px;
+  align-items: center;
+}
+.exercise-row.header span {
+  display: block;
+}
+
+/* Campos de entrada das células */
+.exercise-row input {
+  padding: 0.35rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+/* Textarea para o nome do exercício (permite quebra de linha) */
+.exercise-row textarea {
+  padding: 0.35rem;
+  border: 1px solid var(--gray-color);
+  border-radius: 4px;
+  width: 100%;
+  font-size: 0.9rem;
+  resize: vertical;
+  line-height: 1.2;
+  font-family: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Botões de ação nas linhas de exercício */
+.exercise-row .btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.exercise-row .add-ex-row {
+  color: var(--primary-color);
+}
+.exercise-row .del-ex-row {
+  color: var(--error-color);
+}
+
+/*
+ * Linha de exercício expandida
+ *
+ * Quando o nome do exercício ocupa mais de uma linha, a classe `multi-line` é
+ * aplicada ao elemento `.exercise-row` via JavaScript. A grid permanece a mesma,
+ * mas esta classe serve para ajustes ou personalizações futuras.
+ */
+.exercise-row.multi-line {
+  /* Nenhuma alteração de colunas é necessária no momento, mas a classe facilita
+     o targeting de linhas expandidas caso o layout precise ser ajustado. */
+}
+
+/* Barra para adicionar novo treino: texto e botão + */
+.add-training-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.8rem;
+  font-weight: bold;
+}
+
+.add-training-bar .btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--dark-color);
+  cursor: pointer;
+  line-height: 1;
+}
+.add-training-bar .btn:hover {
+  color: var(--primary-color);
+}
+
+/* ====================
+   Estilos da tela de monitoramento (monitoring.html)
+   ====================
+   A tela de monitoramento permite que o usuário selecione um plano de treino existente
+   e visualize os treinos e exercícios de forma estática. Estes estilos definem a
+   apresentação da lista de planos e dos detalhes de cada plano. */
+
+/* Contêiner da lista de planos. Aparece abaixo do botão "Plano de Treino" quando clicado */
+.plan-dropdown {
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Cada item de plano dentro da lista. Exibe o nome do plano e responde ao hover */
+.plan-dropdown .plan-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--gray-color);
+  cursor: pointer;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.plan-dropdown .plan-item:last-child {
+  border-bottom: none;
+}
+
+.plan-dropdown .plan-item:hover {
+  background-color: var(--accent-color);
+  color: var(--dark-color);
+}
+
+/* Contêiner que exibe os detalhes de um plano de treino selecionado */
+.plan-view {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  /* Permite que elementos posicionados absolutamente (como o botão de fechar) sejam alinhados em relação ao contêiner */
+  position: relative;
+}
+
+/* Título do plano de treino dentro da visualização */
+.plan-view h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.3rem;
+}
+
+/* Título de cada treino (dia) */
+.plan-view h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+/* Wrapper para cada dia/treino */
+.plan-view .training {
+  margin-bottom: 1rem;
+}
+
+/* Lista de exercícios dentro de um treino */
+.plan-view ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cada exercício possui nome e valor alinhados em duas colunas flexíveis */
+.plan-view li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.95rem;
+}
+
+.plan-view li:last-child {
+  border-bottom: none;
+}
+
+/* Nome do exercício */
+.plan-view .exercise-name {
+  font-weight: 500;
+  color: var(--dark-color);
+}
+
+/* Valor do exercício (séries, repetições, tempo ou carga) */
+.plan-view .exercise-value {
+  color: var(--dark-color);
+  margin-left: 1rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ====================
+   Estilos adicionais para a tela de monitoramento
+   ==================== */
+
+/* Container que agrupa os botões principais da tela de monitoramento */
+.monitor-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1rem;
+}
+
+/* Em telas maiores, alinha os botões lado a lado */
+@media (min-width: 500px) {
+  .monitor-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .monitor-buttons .btn {
+    flex: 1;
+    margin-top: 0;
+  }
+}
+
+/* Botão circular utilizado para fechar a visualização de um plano de treino */
+.close-plan-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #ff5757; /* vermelho chamativo para indicar fechamento */
+  color: #000; /* texto preto conforme especificado */
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajusta o botão de impressão para ocupar toda a largura disponível e separá-lo do conteúdo */
+.plan-view .print-btn {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Estilo de impressão: exibe apenas o plano selecionado ao imprimir */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .plan-view, .plan-view * {
+    visibility: visible;
+  }
+  .plan-view {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: none;
+  }
+}
+
+/* ====================
+   Grade e cartões da tela de monitoramento (novo layout)
+   ==================== */
+.monitor-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 500px) {
+  .monitor-grid {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.monitor-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  /* Aumenta o tamanho máximo dos cartões na tela de monitoramento para se aproximar do design de referência */
+  max-width: 260px;
+}
+
+.monitor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.monitor-card .monitor-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.5rem;
+}
+
+.monitor-card .monitor-label {
+  font-weight: 600;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+/* Botão para exportar relatório na tela de monitoramento */
+.export-report-btn {
+  margin-top: 1rem;
+  max-width: 200px;
+  align-self: center;
+}
+
+/* ====================
+   Layout personalizado da página de nutrição
+   ==================== */
+.nutrition-card {
+  width: 100%;
+  max-width: 700px;
+  /* Fundo levemente translúcido para que o cartão externo se destaque do interno */
+  background-color: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nutrition-card h1 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+/* Botão de voltar na página de nutrição */
+body.nutrition .icon-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.nutrition-inner {
+  width: 100%;
+  max-width: 600px;
+  /* Fundo sólido para o cartão interno de conteúdo */
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--dark-color);
+}
+
+/* ====================
+   Estilos adicionais para a listagem de planos (plans.html)
+   ==================== */
+.plans-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.plans-list .plan-item {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  color: var(--dark-color);
+  transition: background-color 0.2s ease;
+}
+
+.plans-list .plan-item:hover {
+  background-color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+}
+
+/* ====================
+   Estilos para a página de relatório
+   ==================== */
+.report-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.report-content th,
+.report-content td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--gray-color);
+  font-size: 0.9rem;
+}
+.report-content th {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+  text-align: left;
+}
+.report-content tr:nth-child(even) td {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* ====================
+   Estilos para a Calculadora IMC (imc.html)
+   ====================
+   A calculadora de IMC utiliza um contêiner escuro sobre o fundo do aplicativo.
+   Os campos de entrada são destacados e centralizados, e os botões são alinhados horizontalmente.
+*/
+.imc-container {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--light-color);
+  padding: 1.5rem;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.imc-container h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.imc-input {
+  margin: 0.6rem 0;
+  font-size: 1.5rem;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  text-align: center;
+  color: var(--dark-color);
+}
+
+.imc-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.imc-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.imc-buttons .btn {
+  width: auto;
+  padding: 0.5rem 1rem;
+}
+
+.imc-result {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
