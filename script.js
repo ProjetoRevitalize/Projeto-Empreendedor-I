@@ -2643,17 +2643,15 @@ contentHTML = tableHTML + summaryHTML;
         errorEl.textContent = 'No campo "Altura", utilize apenas caracteres numéricos positivos com duas casas decimais.';
         return;
       }
-      // Valida idade como número inteiro positivo (obrigatório)
-      // Agora exigimos que o campo idade seja preenchido e maior que zero
-      if (!idadeInput || idadeInput.value.trim() === '' || isNaN(idade) || idade <= 0) {
-        errorEl.textContent = 'No campo "Idade", utilize apenas caracteres numéricos inteiros positivos.';
-        return;
+      // Se o campo de idade existir e tiver algum valor digitado, valida como número inteiro positivo.
+      // Caso contrário, a idade é considerada opcional e não bloqueia o cálculo.
+      if (idadeInput && idadeInput.value.trim() !== '') {
+        if (isNaN(idade) || idade <= 0) {
+          errorEl.textContent = 'No campo "Idade", utilize apenas caracteres numéricos inteiros positivos.';
+          return;
+        }
       }
-      // Valida sexo como campo obrigatório
-      if (!sexo) {
-        errorEl.textContent = 'Selecione uma opção de sexo.';
-        return;
-      }
+      // O sexo deixou de ser um campo obrigatório; nenhuma validação adicional é necessária.
       // Calcula o IMC e classifica conforme faixas padrão
       const imc = peso / (altura * altura);
       const imcFixed = parseFloat(imc.toFixed(1));

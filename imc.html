@@ -31,16 +31,7 @@
         <input id="pesoImc" class="imc-input" type="number" step="0.01" placeholder="0,00" />
         <label for="alturaImc">Informe Altura (m)</label>
         <input id="alturaImc" class="imc-input" type="number" step="0.01" placeholder="0,00" />
-        <!-- Campos opcionais de idade e sexo para uso no histórico -->
-        <label for="idadeImc">Informe Idade (anos)</label>
-        <input id="idadeImc" class="imc-input" type="number" step="1" min="0" placeholder="0" />
-        <label>Sexo</label>
-        <div class="radio-group" style="justify-content:center; color: var(--light-color); margin-bottom: 0.5rem;">
-          <!-- Opções de sexo para o cálculo do IMC. Além de Masculino e Feminino, incluímos uma opção neutra para usuários que preferem não informar -->
-          <label><input type="radio" name="sexoImc" value="Masculino" /> Masculino</label>
-          <label><input type="radio" name="sexoImc" value="Feminino" /> Feminino</label>
-          <label><input type="radio" name="sexoImc" value="Não informar" /> Não informar</label>
-        </div>
+        <!-- Os campos de idade e sexo foram removidos conforme solicitação. -->
         <div class="imc-buttons">
           <button id="calcularImcBtn" class="btn primary" type="button">Calcular</button>
           <button id="imcHistoryBtn" class="btn" type="button">Histórico IMC</button>
